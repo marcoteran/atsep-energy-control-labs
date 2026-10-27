@@ -1,0 +1,1932 @@
+%% Guía de laboratorio - Banco básico de controles con ESP32 (3 h)
+%% Básico ATSEP - Sistemas de Energía - Contenido académico y dirección docente: Marco Teran
+%% Compilar con pdflatex dos veces. Guia autocontenida: el codigo de referencia esta en el anexo.
+%% Fotografias opcionales (kit y polaridad): si faltan, se dibuja una ilustracion didactica TikZ, sin espacios vacios.
+%% Diagramas esquematicos y plano BB830 conservados y reforzados con netlist.
+%% Fotografias: numeracion siempre estable. Cada figura mantiene su caption aun si falta PNG.
+%% Si el archivo existe en imagenes/ o junto al .tex, includegraphics lo inserta.
+%% Los avisos de compilacion no afectan la completitud de los diagramas didacticos alternativos.
+\documentclass[11pt,a4paper]{article}
+\usepackage{iftex}
+
+\iftutex
+% --- Motor XeLaTeX o LuaLaTeX (UTF-8 nativo) ---
+\usepackage{fontspec}
+\setsansfont{Latin Modern Sans}[Scale=0.92]
+\setmonofont{Latin Modern Mono}[Scale=0.92]
+\renewcommand{\familydefault}{\sfdefault}
+\else
+% --- Motor pdfLaTeX ---
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{textcomp}
+\usepackage{lmodern}
+\usepackage[scaled=0.92]{helvet}
+\renewcommand{\familydefault}{\sfdefault}
+\DeclareUnicodeCharacter{00A0}{~}
+\DeclareUnicodeCharacter{00BF}{\textquestiondown}
+\DeclareUnicodeCharacter{00A1}{\textexclamdown}
+\DeclareUnicodeCharacter{2212}{\ensuremath{-}}
+\fi
+
+\usepackage[spanish,es-noshorthands,es-nodecimaldot,es-tabla]{babel}
+\usepackage{needspace}
+\usepackage{placeins}
+\usepackage[a4paper,margin=2.2cm,headheight=14pt]{geometry}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{booktabs,tabularx,array,multirow,longtable}
+\usepackage{enumitem}
+\usepackage{amsmath}
+\usepackage[output-decimal-marker={,},per-mode=symbol]{siunitx}
+\DeclareSIUnit\ohm{\ensuremath{\Omega}}
+\DeclareSIPrefix\micro{\ensuremath{\mu}}{-6}
+\usepackage[european resistors,american inductors]{circuitikz}
+\usepackage{tikz}
+\usetikzlibrary{calc,positioning,fit,arrows.meta}
+\usepackage[most]{tcolorbox}
+\usepackage{listings}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{caption}
+\usepackage{float}
+\usepackage{pdflscape}
+\usepackage[colorlinks=true,urlcolor=blue,linkcolor=navy]{hyperref}
+\usepackage{attachfile2}
+
+
+% Unicode: pdfLaTeX se configura dentro de la rama correspondiente.
+% XeLaTeX y LuaLaTeX procesan estos caracteres de forma nativa.
+
+% ---------- Colores ----------
+\definecolor{navy}{HTML}{0F2747}
+\definecolor{azul}{HTML}{2563EB}
+\definecolor{pizarra}{HTML}{475569}
+\definecolor{borde}{HTML}{D8DEE8}
+\definecolor{fondo}{HTML}{F7F9FC}
+\definecolor{verde}{HTML}{15803D}
+\definecolor{ambar}{HTML}{B45309}
+\definecolor{rojo}{HTML}{B91C1C}
+
+\ctikzset{logic ports=ieee, logic ports/scale=0.8}
+\captionsetup{font=small,labelfont={bf,color=navy}}
+\setlist{itemsep=2pt,topsep=4pt}
+
+% ---------- Títulos ----------
+\titleformat{\section}{\Large\bfseries\color{navy}}{\thesection}{0.8em}{}
+\titleformat{\subsection}{\large\bfseries\color{navy}}{\thesubsection}{0.6em}{}
+\titleformat{\subsubsection}{\normalsize\bfseries\color{azul}}{\thesubsubsection}{0.5em}{}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\small\color{pizarra}Banco básico de controles con ESP32}
+\rhead{\small\color{pizarra}Básico ATSEP - Sistemas de Energía}
+\cfoot{\small\color{pizarra}\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% ---------- Cajas pedagógicas ----------
+\newtcolorbox{objetivo}{colback=fondo,colframe=navy,boxrule=0.6pt,arc=2pt,title=Objetivo,fonttitle=\bfseries\small,left=6pt,right=6pt}
+\newtcolorbox{curso}{colback=white,colframe=azul,boxrule=0.6pt,arc=2pt,title=Conexión con el curso,fonttitle=\bfseries\small}
+\newtcolorbox{predice}{colback=white,colframe=ambar,boxrule=0.6pt,arc=2pt,title=Predice antes de accionar,fonttitle=\bfseries\small}
+\newtcolorbox{seguridad}{colback=red!3,colframe=rojo,boxrule=0.6pt,arc=2pt,title=Seguridad y cuidado del equipo,fonttitle=\bfseries\small}
+\newtcolorbox{evidencia}{colback=green!3,colframe=verde,boxrule=0.6pt,arc=2pt,title=Evidencia que debe entregar,fonttitle=\bfseries\small}
+\newtcolorbox{falla}{colback=white,colframe=rojo!70,boxrule=0.6pt,arc=2pt,title=Prueba una falla,fonttitle=\bfseries\small}
+\newtcolorbox{clave}{colback=fondo,colframe=borde,boxrule=0.6pt,arc=2pt}
+
+% ---------- Fotografias: figuras obligatorias, NO se omiten silenciosamente ----------
+% Buscar primero en imagenes/ y luego junto al archivo maestro .tex.
+% Mantener begin{figure} / caption / label SIEMPRE, incluso si falta la imagen.
+% Un archivo ausente genera aviso visible para no entregar un PDF incompleto.
+% ---------- Ilustraciones alternativas cuando no se distribuyen fotografías ----------
+% Son esquemas conceptuales, NO fotografías del material comprado.
+\newcommand{\kitIlustrativo}{%
+  \begin{tikzpicture}[font=\scriptsize,scale=0.9,transform shape]
+    \draw[rounded corners=4pt,fill=fondo,draw=borde] (-0.25,-0.25) rectangle (9.4,3.15);
+    \draw[fill=navy!15,draw=navy,rounded corners=3pt] (0.25,0.55) rectangle (2.4,2.68);
+    \draw[fill=navy!65] (0.6,1.15) rectangle (2.05,2.2);
+    \node[color=white,font=\bfseries\scriptsize] at (1.33,1.70) {ESP32};
+    \node at (1.32,0.27) {controlador};
+    \draw[fill=black!80,draw=pizarra,rounded corners=1pt] (3.1,1.50) rectangle (5.2,2.20);
+    \node[text=white] at (4.15,1.85) {74HC08};
+    \node at (4.15,1.18) {lógica AND};
+    \foreach \x/\c in {6.0/rojo,6.7/verde,7.4/ambar} {
+      \draw[fill=\c!65,draw=pizarra] (\x,2.03) circle (0.22);
+      \draw[pizarra] (\x-0.10,1.82)--(\x-0.10,1.46) (\x+0.10,1.82)--(\x+0.10,1.46);
+    }
+    \node at (6.7,1.18) {tres LEDs};
+    \draw[draw=navy,fill=white,rounded corners=1pt] (3.1,0.18) rectangle (4.2,0.77);
+    \fill[azul!65] (3.65,0.48) circle (0.18);
+    \draw[draw=navy,fill=white,rounded corners=1pt] (4.6,0.18) rectangle (5.7,0.77);
+    \fill[rojo!65] (5.15,0.48) circle (0.18);
+    \node[anchor=west] at (6.15,0.52) {pulsadores, DIP y resistencias};
+  \end{tikzpicture}%
+}
+\newcommand{\polaridadIlustrativa}{%
+  \begin{tikzpicture}[font=\small,scale=0.9,transform shape]
+    \draw[draw=borde,fill=fondo,rounded corners=4pt] (-0.35,-0.35) rectangle (8.6,2.45);
+    \draw[very thick,pizarra] (0.45,1) -- (2.25,1);
+    \draw[fill=rojo!45,draw=rojo,thick] (2.60,1.0) circle (0.53);
+    \draw[thick,pizarra] (3.13,1.0)--(5.10,1.0);
+    \node[above] at (0.75,1.1) {ánodo (+)};
+    \node[above] at (4.35,1.1) {cátodo (−)};
+    \node[below,align=center] at (1.0,0.88) {pata larga\\hacia la resistencia};
+    \node[below,align=center] at (4.3,0.88) {pata corta / lado plano\\hacia GND};
+    \node[anchor=west,align=left,text=navy] at (5.35,1.15) {Identifique la polaridad\\antes de energizar};
+  \end{tikzpicture}%
+}
+
+% ---------- Código ----------
+\lstdefinestyle{ino}{
+	language=C++,
+	basicstyle=\ttfamily\scriptsize,
+	keywordstyle=\color{azul}\bfseries,
+	commentstyle=\color{pizarra}\itshape,
+	stringstyle=\color{verde},
+	numbers=left,
+	numberstyle=\tiny\color{pizarra},
+	frame=single,
+	rulecolor=\color{borde},
+	breaklines=true,
+	columns=fullflexible,
+	showstringspaces=false,
+	extendedchars=true,
+	literate=
+	{á}{{\'a}}1 {é}{{\'e}}1 {í}{{\'i}}1 {ó}{{\'o}}1 {ú}{{\'u}}1
+	{Á}{{\'A}}1 {É}{{\'E}}1 {Í}{{\'I}}1 {Ó}{{\'O}}1 {Ú}{{\'U}}1
+	{ñ}{{\~n}}1 {Ñ}{{\~N}}1
+	{¿}{{\textquestiondown}}1 {¡}{{\textexclamdown}}1
+	{Ω}{{$\Omega$}}1 {·}{{$\cdot$}}1 {¬}{{$\neg$}}1
+	{–}{{--}}1 {→}{{$\rightarrow$}}1
+}
+\lstset{style=ino}
+
+\newcommand{\sig}[1]{\texttt{#1}}
+\newcommand{\linea}[1][3cm]{\rule{#1}{0.4pt}}
+\newcolumntype{C}{>{\centering\arraybackslash}X}
+
+\newtcolorbox{regla}{colback=fondo,colframe=navy,boxrule=0.6pt,arc=2pt,title=Tres reglas que se cumplen siempre,fonttitle=\bfseries\small}
+\newtcolorbox{calculo}{colback=white,colframe=azul,boxrule=0.6pt,arc=2pt,title=El cálculo,fonttitle=\bfseries\small}
+\setlength{\parskip}{3pt}
+
+% ===================================================================
+\begin{document}
+\thispagestyle{empty}
+
+{\color{azul}\ttfamily\small ATSEP CONTROL LAB - BANCO FÍSICO}\par\vspace{4pt}
+{\LARGE\bfseries\color{navy} Guía de laboratorio: banco básico de controles con ESP32\par}\vspace{4pt}
+{\large\color{pizarra} Pulsadores, interruptores, una compuerta Y y tres LEDs\par}\vspace{6pt}
+{\small Básico ATSEP - Sistemas de Energía - Complemento del \emph{Laboratorio Interactivo de Controles Eléctricos}\par
+\textbf{Contenido académico y dirección docente:} Marco Teran}
+
+\section*{Recursos del curso}
+\noindent\textbf{Materiales para descargar:}
+\href{https://github.com/marcoteran/atsep-energy-control-labs/raw/refs/heads/main/firmware/banco_simple_esp32.ino}{\textcolor{azul}{\underline{Programa ESP32 (.ino)}}}
+\quad
+\href{https://github.com/marcoteran/atsep-energy-control-labs/raw/refs/heads/main/presentaciones/controles_electricos_y_logica_cableada.pdf}{\textcolor{azul}{\underline{Diapositivas del curso (PDF)}}}.
+\par
+\noindent\textbf{Descarga sin Internet:} \IfFileExists{firmware/banco_simple_esp32.ino}{\attachfile[description={Programa Arduino ESP32 ATSEP},mimetype={text/plain},icon=Paperclip]{firmware/banco_simple_esp32.ino}\quad Haga clic en el clip para extraer el programa Arduino adjunto al PDF.}{El programa Arduino se entrega en el repositorio.}\par
+\noindent\textbf{Simulador digital:} \href{https://github.com/marcoteran/atsep-controllogyc}{\textcolor{azul}{\underline{atsep-controllogyc}}}.\par
+\vspace{4pt}
+
+\section*{Introducción}
+
+Este laboratorio presenta, desde cero, un \textbf{circuito de control eléctrico}: un conjunto de entradas (botones y selectores), reglas de decisión y salidas. En un tablero real, el operador puede dar la orden de \textbf{MARCHA}, detener un equipo con \textbf{PARO}, observar alarmas y seleccionar una fuente de alimentación. Aquí representaremos esas acciones con señales seguras de \SI{3,3}{V}, sin conectar equipos de potencia.
+
+El banco se construye paso a paso. Primero aprenderá a encender un LED, después a leer pulsadores, luego a mantener una orden de marcha y finalmente a simular una transferencia entre \textbf{red eléctrica} y \textbf{planta de respaldo}. El LED verde representará el mando de KM1 (red), el naranja el de KM2 (planta) y el rojo una alarma. \textbf{Un LED encendido representa una orden, no confirma que exista tensión real ni que haya cerrado un contactor.}
+
+\subsection*{Conozca los componentes antes de conectarlos}
+
+\begin{description}[style=nextline,leftmargin=1.2cm,topsep=3pt,itemsep=3pt]
+ \item[ESP32 (microcontrolador).] Es una pequeña computadora programable dentro de una tarjeta llamada \emph{DevKitC}. Ejecuta instrucciones, lee niveles eléctricos mediante sus pines \textbf{GPIO} (entradas y salidas de propósito general) y activa salidas. Recibe el programa del computador mediante el cable USB. En este laboratorio funciona como el \emph{controlador} del sistema: interpreta MARCHA, PARO y los selectores, y genera CMD1 y CMD2.
+ \item[74HC08 (circuito integrado).] Es un chip de 14 patas que contiene \textbf{cuatro compuertas lógicas Y (AND)}. Cada compuerta tiene dos entradas y una salida: la salida vale 1 únicamente cuando \textbf{ambas entradas valen 1}. Utilizaremos dos compuertas para permitir una orden solo cuando PARO esté liberado. No es un dispositivo de seguridad certificado ni un enclavamiento entre KM1 y KM2.
+ \item[Protoboard (placa de pruebas).] Permite armar circuitos sin soldadura. Los agujeros de cada grupo de cinco se comunican internamente; los dos lados del canal central están separados. Los rieles laterales pueden estar \textbf{interrumpidos} en algunos modelos: verifíquelos con el multímetro antes de usarlos.
+ \item[Resistencias, LED, pulsadores y DIP.] La resistencia limita corriente o fija una entrada digital. Un LED es un indicador luminoso con polaridad. Un pulsador solo cambia su contacto mientras se oprime; el DIP es un conjunto de pequeños interruptores que conservan su posición.
+\end{description}
+
+\begin{clave}
+\textbf{Palabras clave:} \sig{3V3} = alimentación positiva de \SI{3,3}{V}; \sig{GND} = referencia eléctrica o 0 V; \sig{GPIO} = pin digital; \sig{1} = nivel alto, próximo a 3,3 V; \sig{0} = nivel bajo, próximo a 0 V; \sig{CMD} = orden del controlador; \sig{KM1/KM2} = nombres didácticos de los mandos de dos contactores.
+\end{clave}
+
+\begin{seguridad}
+Trabaje únicamente con el banco alimentado por USB y a \SI{3,3}{V}. \textbf{No conecte la red eléctrica, una planta real, contactores ni tensiones externas a la protoboard.} No aplique 5 V a los GPIO del ESP32. Desconecte el USB antes de mover cables y solicite revisión docente antes de energizar un montaje nuevo.
+\end{seguridad}
+
+\subsection*{Objetivo y ruta de trabajo}
+Simular, construir y comprobar un control básico, desde una salida sencilla hasta una transferencia red--planta, explicando qué corresponde al programa y qué corresponde al cableado.
+
+\begin{center}\small
+\begin{tabularx}{\linewidth}{@{}X r X@{}}
+\toprule
+\textbf{Momento} & \textbf{Minutos} & \textbf{Aprendizaje}\tabularnewline\midrule
+Preparación y reconocimiento & 20 & Identificar componentes, alimentación y pines\\
+Práctica 1: LED & 25 & Corriente, resistencia y medición\\
+Práctica 2: entradas & 35 & Pulsador, interruptor, pull-up y pull-down\\
+Práctica 3: marcha--paro & 45 & Retención e inhibición por compuerta AND\\
+Práctica 4: red--planta & 40 & Temporización y transferencia sin solape normal\\
+Cierre y evidencia & 15 & Explicar, documentar y entregar\\\midrule
+\textbf{Total} & \textbf{180} & \textbf{3 horas}\\\bottomrule
+\end{tabularx}
+\end{center}
+
+\section*{Materiales de la práctica de laboratorio}
+
+\begin{center}\small\renewcommand{\arraystretch}{1.2}
+\begin{tabularx}{\linewidth}{@{}c l X c@{}}
+\toprule
+\textbf{Cant.} & \textbf{Pieza} & \textbf{Para qué} & \textbf{Práctica}\\
+\midrule
+1 & ESP32 DevKitC + cable USB & Programa, lee las entradas y da las órdenes & todas\\
+1--2 & Protoboard(s), preferible 830 puntos o dos de 400 & Espacio suficiente para ESP32 y el 74HC08 & todas\\
+2 & Pulsadores de 4 patas (6×6 mm) & MARCHA y PARO & 2–4\\
+1 & DIP switch de 3 o 4 posiciones & A (red apta), B (planta disponible), FALLA & 2–4\\
+1 & Integrado 74HC08 (cuatro compuertas Y) & Hace cumplir el PARO por cable & 3–4\\
+1 & Condensador de \SI{100}{nF} & Estabiliza la alimentación del 74HC08 & 3–4\\
+3 & LEDs de 5 mm: rojo, verde, naranja (o amarillo) & Alarma, KM1 (red), KM2 (planta) & 1–4\\
+3 & Resistencias de \SI{330}{\ohm} (naranja-naranja-marrón-oro en 4 bandas) & Limitan la corriente de cada LED & 1–4\\
+7 & Resistencias de \SI{10}{k\ohm} (marrón-negro-naranja-oro en 4 bandas) & Fijan el valor de cada entrada & 2–4\\
+30--40 & Cables de conexión (jumpers) & Cableado del banco; detalle en la hoja auxiliar & todas\\
+1 & Multímetro & Medir tensiones & 1–2\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+
+\begin{figure}[H]
+ \centering
+ \IfFileExists{imagenes/kit_basico.png}{\includegraphics[width=0.72\linewidth,height=4.8cm,keepaspectratio]{imagenes/kit_basico.png}}{%
+   \IfFileExists{kit_basico.png}{\includegraphics[width=0.72\linewidth,height=4.8cm,keepaspectratio]{kit_basico.png}}{%
+    \kitIlustrativo
+    \PackageWarningNoLine{Laboratorio ATSEP}{Foto del kit no distribuida; se usa ilustracion didactica}%
+   }%
+ }
+ \caption{Elementos del kit: fotografía si está disponible; en otro caso, ilustración orientativa (no sustituye la revisión de los componentes reales).}
+ \label{fig:kit_basico}
+\end{figure}
+
+% ===================================================================
+\section{Preparación}
+
+\begin{objetivo}
+Reconocer el ESP32, comprobar los puntos de alimentación y preparar el programa antes de conectar las entradas y las salidas.
+\end{objetivo}
+
+\begin{enumerate}
+ \item \textbf{Revise el kit} (Figura~\ref{fig:kit_basico}) y localice en su tarjeta los rótulos \sig{3V3}, \sig{GND} y \sig{GPIO}. El orden de pines puede cambiar entre fabricantes y versiones; guíese siempre por la serigrafía de \textbf{su} tarjeta, no por una foto genérica.
+ \item \textbf{Instale y programe el ESP32.} Con el cable USB conecte la tarjeta al computador y abra el IDE de Arduino. Cree un sketch nuevo, copie el código del \textbf{Anexo~\ref{sec:programa}} y guárdelo como \path{banco_simple_esp32.ino}. Seleccione la placa y el puerto correctos, cargue el programa y abra el \emph{Monitor serie} a \textbf{115200 baudios}. Debe leer: \emph{«Banco básico ATSEP. Escriba 1, 2, 3 o 4.»}
+ \item \textbf{Desconecte el USB} antes de cablear. Una el pin \sig{3V3} al riel positivo y \sig{GND} al negativo. Compruebe con el multímetro qué segmentos del riel están realmente conectados y únalos mediante jumpers si están interrumpidos.
+ \item \textbf{Trabaje por etapas:} no conecte toda la práctica de una vez. Compruebe cada bloque y solicite revisión antes de energizar el siguiente. Las figuras finales \ref{fig:montaje_esquematico} y \ref{fig:montaje_tikz} son referencias globales; para cada señal siga también la tabla completa de conexiones del Anexo~\ref{sec:conexiones}.
+\end{enumerate}
+
+\begin{center}\small\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{}l l l@{}}
+\toprule
+\textbf{Pin ESP32} & \textbf{Conectado a} & \textbf{Práctica}\\
+\midrule
+GPIO 18 & LED rojo (alarma) & 1--4\\
+GPIO 14 & Pulsador MARCHA & 2--3\\
+GPIO 13 & Pulsador PARO y \sig{PARO\_OK} (AND) & 2--4\\
+GPIO 32, 33, 25 & DIP: A, B, FALLA & 2--4\\
+GPIO 23 & Orden CMD1 → 74HC08 pin 1 & 3--4\\
+GPIO 22 & Orden CMD2 → 74HC08 pin 4 & 4\\
+\sig{3V3} / \sig{GND} & Rieles rojo y azul & 0\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% ===================================================================
+\section{El LED y su resistencia}
+
+\begin{objetivo}
+Calcular la resistencia de un LED, montarlo y comprobar el cálculo con el multímetro.
+\end{objetivo}
+
+Un \textbf{LED} (diodo emisor de luz) deja circular corriente principalmente en un sentido: del \textbf{ánodo} (+) al \textbf{cátodo} (−). Por eso importa cómo se orienta (Figura~\ref{fig:led_polaridad}). Tampoco limita por sí mismo la corriente: conectado directamente a un pin puede dañarse o dañar el ESP32. Una \textbf{resistencia en serie} controla la corriente y protege el montaje.
+
+\begin{calculo}
+La resistencia \textbf{se queda} con la tensión que sobra: la del pin menos la del LED ($V_F$, unos \SI{2,0}{V} en un LED rojo). Para una corriente cómoda de \SI{4}{mA}:
+\[
+R=\frac{V_{pin}-V_F}{I_{LED}}=\frac{\SI{3,3}{V}-\SI{2,0}{V}}{\SI{0,004}{A}}=\SI{325}{\ohm}\;\Rightarrow\;\text{valor comercial: }\SI{330}{\ohm}
+\]
+Con \SI{330}{\ohm}, la corriente estimada a partir de una salida ideal de 3,3 V es $(3{,}3-2{,}0)/330 \approx \SI{3,9}{mA}$: el LED se ve bien y el pin trabaja con una corriente moderada. En las salidas del 74HC08 la corriente real dependerá de su tensión de salida bajo carga; compruébela en el montaje. La resistencia disipa apenas $P = I^2R \approx \SI{5}{mW}$ (soporta \SI{250}{mW}).
+\end{calculo}
+
+\begin{figure}[H]
+ \centering
+ \IfFileExists{imagenes/led_polaridad.png}{\includegraphics[width=0.69\linewidth,height=3.7cm,keepaspectratio]{imagenes/led_polaridad.png}}{%
+  \IfFileExists{led_polaridad.png}{\includegraphics[width=0.69\linewidth,height=3.7cm,keepaspectratio]{led_polaridad.png}}{%
+    \polaridadIlustrativa
+    \PackageWarningNoLine{Laboratorio ATSEP}{Foto LED no distribuida; se usa ilustracion didactica}%
+  }%
+ }
+ \caption{Polaridad del LED antes del montaje: ánodo (+) hacia la resistencia y cátodo (−) hacia GND. La ilustración se emplea si no se encuentra la fotografía.}
+ \label{fig:led_polaridad}
+\end{figure}
+
+\begin{figure}[H]\centering
+\begin{circuitikz}[scale=0.9, transform shape]
+\draw (0,0) node[left]{GPIO 18} to[short,o-] (0.4,0) to[R, l={\SI{330}{\ohm}}, a={$V_R$}] (3.2,0) to[led, l={rojo}, a={$V_F$}] (5.6,0) -- (6.2,0) node[ground]{};
+\end{circuitikz}
+\caption{LED rojo de alarma. La pata \textbf{larga} del LED va hacia la resistencia; la corta, hacia \sig{GND}.}
+\label{fig:led}
+\end{figure}
+
+
+\begin{enumerate}
+  \item Con el USB desconectado, arme la Figura~\ref{fig:led}.
+  \item Conecte el USB y escriba \texttt{1} en el Monitor serie: el LED rojo queda encendido.
+  \item Mida con el multímetro \textbf{en voltios de continua}, colocando las puntas a ambos extremos de cada elemento, sin abrir el circuito. Primero mida $V_R$ en la resistencia y luego $V_F$ en el LED. Anote. \textbf{No ponga el multímetro en modo corriente directamente entre 3V3 y GND.}
+\end{enumerate}
+
+\begin{center}\small\renewcommand{\arraystretch}{1.5}
+\begin{tabular}{@{}c c c c@{}}
+\toprule
+$V_R$ medida & $V_F$ medida & Corriente $I = V_R/330$ & ¿Coincide con el cálculo?\\
+\midrule
+\linea[2cm] & \linea[2cm] & \linea[2.5cm] & \linea[3cm]\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Pregunta.} ¿Cuánto suman $V_R + V_F$? ¿Por qué ese número?
+
+
+
+% ===================================================================
+\section{Las entradas: pulsador e interruptor}
+
+\begin{objetivo}
+Conectar las cinco entradas sin dejar ninguna al aire y distinguir una entrada momentánea de una mantenida.
+\end{objetivo}
+
+Una \textbf{entrada digital} interpreta una tensión como 0 o como 1. Si el pin queda desconectado, \textbf{flota}: puede indicar 0 o 1 de forma imprevisible, debido a interferencias. La prueba con el dedo ilustra el problema, pero \textbf{no garantiza} que se produzcan cambios en todos los montajes. Por eso \textbf{cada entrada lleva una resistencia de \SI{10}{k\ohm}} que fija su valor mientras el contacto está abierto. En este banco hay dos formas:
+
+\begin{itemize}
+  \item \textbf{Pull-down} (resistencia a \sig{GND}): abierto lee 0; al cerrar el contacto hacia \sig{3V3} lee 1. Se usa en MARCHA, A, B y FALLA.
+  \item \textbf{Pull-up} (resistencia a \sig{3V3}): abierto lee 1; al cerrar el contacto hacia \sig{GND} lee 0. Se usa en PARO: en reposo vale 1 (\sig{PARO\_OK}, \textbf{se permite marchar}) y al pulsarlo cae a 0.
+\end{itemize}
+El ESP32 trae resistencias internas (\sig{INPUT\_PULLUP}), pero aquí \textbf{todas son externas} y el programa usa \sig{INPUT}. Razón: la línea de PARO también irá a la compuerta 74HC08, que no tiene resistencias internas. Corriente con el contacto cerrado: $\SI{3,3}{V}/\SI{10}{k\ohm} = \SI{0,33}{mA}$, despreciable.
+
+\begin{figure}[H]\centering
+\resizebox{\linewidth}{!}{%
+\begin{circuitikz}[scale=0.85, transform shape]
+\begin{scope}
+  \draw (1.2,3.6) node[vcc]{\sig{3V3}} to[nopb, l={\scriptsize MARCHA}, -*] (1.2,1.6) coordinate (n1);
+  \draw (n1) -- (2.6,1.6) node[right, font=\scriptsize]{GPIO 14};
+  \draw (n1) to[R, l={\scriptsize \SI{10}{k\ohm}}] (1.2,-0.8) node[ground]{};
+  \node[font=\small\bfseries, align=center] at (1.6,-2.0) {(a) MARCHA\\[-2pt]\scriptsize pull-down - pulsado = 1};
+\end{scope}
+\begin{scope}[xshift=5.4cm]
+  \draw (1.2,3.6) node[vcc]{\sig{3V3}} to[R, l={\scriptsize \SI{10}{k\ohm}}, -*] (1.2,1.6) coordinate (n2);
+  \draw (n2) -- (2.6,1.6) node[right, font=\scriptsize, align=left]{GPIO 13\\y 74HC08 pines 2 y 5};
+  \draw (n2) to[nopb, l={\scriptsize PARO}] (1.2,-0.8) node[ground]{};
+  \node[font=\small\bfseries, align=center] at (1.6,-2.0) {(b) PARO\\[-2pt]\scriptsize pull-up - reposo = 1 = \sig{PARO\_OK}};
+\end{scope}
+\begin{scope}[xshift=11.4cm]
+  \draw (1.2,3.6) node[vcc]{\sig{3V3}} to[nos, l={\scriptsize DIP}, -*] (1.2,1.6) coordinate (n3);
+  \draw (n3) -- (2.6,1.6) node[right, font=\scriptsize, align=left]{GPIO 32 (A)\\GPIO 33 (B)\\GPIO 25 (FALLA)};
+  \draw (n3) to[R, l={\scriptsize \SI{10}{k\ohm}}] (1.2,-0.8) node[ground]{};
+  \node[font=\small\bfseries, align=center] at (1.6,-2.0) {(c) DIP, se repite 3 veces\\[-2pt]\scriptsize pull-down - ON = 1};
+\end{scope}
+\end{circuitikz}}
+\caption{Las cinco entradas. Cada una tiene su propia resistencia de \SI{10}{k\ohm}.}
+\label{fig:entradas}
+\end{figure}
+
+
+\begin{enumerate}
+  \item Con el USB desconectado, arme la Figura~\ref{fig:entradas}. En los pulsadores de cuatro patas, \textbf{los dos pines de cada costado pueden estar unidos internamente}; compruebe la orientación con el multímetro y sitúelos cruzando el canal central. Para cada DIP, confirme cuáles terminales se conectan al pasar a ON.
+  \item Conecte el USB y escriba \texttt{2}. El monitor imprime cada cambio y el LED rojo repite el pulsador MARCHA.
+  \item Llene la tabla accionando cada elemento y \textbf{soltándolo}. Compruebe también B y FALLA en el Monitor serie; sus valores esperados son los mismos que para A.
+\end{enumerate}
+
+\begin{center}\small\renewcommand{\arraystretch}{1.5}
+\begin{tabular}{@{}l c c c@{}}
+\toprule
+\textbf{Entrada} & \textbf{Valor en reposo} & \textbf{Valor accionado} & \textbf{Al soltar, ¿vuelve sola?}\\
+\midrule
+MARCHA (pulsador) & \linea[1.5cm] & \linea[1.5cm] & \linea[2cm]\\
+PARO (pulsador) & \linea[1.5cm] & \linea[1.5cm] & \linea[2cm]\\
+A (DIP) & \linea[1.5cm] & \linea[1.5cm] & \linea[2cm]\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{falla}
+Desconecte el USB y \textbf{retire solamente la resistencia de \SI{10}{k\ohm} de A}. Conecte el USB, deje A en OFF y acerque el dedo al cable sin tocar los contactos. Observe si hay lecturas inestables (puede que no ocurran en su montaje). \textbf{Desconecte de nuevo el USB y reponga la resistencia antes de continuar.}
+\end{falla}
+
+\textbf{Preguntas.} (1) ¿Cuál de las dos entradas \textbf{recuerda} la posición: el pulsador o el interruptor? (2) ¿Por qué PARO vale 1 cuando nadie lo toca?
+
+% ===================================================================
+\section{Marcha y paro con retención}
+
+\begin{objetivo}
+Hacer que un pulsador de MARCHA deje el equipo encendido (retención) y que PARO lo apague \textbf{aunque la orden del programa permanezca activa}.
+\end{objetivo}
+
+La \textbf{retención} significa que una pulsación breve de MARCHA mantiene una orden activa incluso después de soltar el botón. En un circuito clásico esto se hace con un contacto auxiliar; aquí el programa del ESP32 \textbf{recuerda} el estado mediante una variable. La expresión siguiente representa la condición de marcha: el signo $+$ significa \emph{O}, el punto significa \emph{Y} y la barra superior significa \emph{NO}.
+\[
+\text{KM1} = (\text{MARCHA} + \text{KM1}) \cdot \text{PARO\_OK} \cdot \overline{\text{FALLA}}
+\]
+\textbf{Dos barreras con funciones diferentes:} el programa decide si debe activar KM1, pero el cableado impide que llegue esa orden cuando se pulsa PARO. La orden del ESP32 (\sig{CMD1}) no enciende el LED directamente: pasa por una \textbf{compuerta Y} del 74HC08 cuya otra entrada es PARO\_OK. Este circuito solo realiza inhibición didáctica de órdenes: no es un paro de emergencia de seguridad certificada. La compuerta solo da 1 si las dos entradas son 1. Si se pulsa PARO, la salida cae a 0 por cable aun con CMD1 alto, siempre que el 74HC08 y el cableado funcionen correctamente.
+
+\begin{figure}[H]\centering
+\begin{circuitikz}[scale=0.9, transform shape]
+\node[and port] (g1) at (5,0) {};
+\node[font=\tiny, above left] at (g1.in 1) {1};
+\node[font=\tiny, below left] at (g1.in 2) {2};
+\node[font=\tiny, above right] at (g1.out) {3};
+\draw (g1.in 1) -- (2.0,0 |- g1.in 1) coordinate (c1) -- (0.6,0 |- g1.in 1) node[left]{GPIO 23 (\sig{CMD1})};
+\draw (c1) to[R, l_={\SI{10}{k\ohm}}, *-] (2.0,-2.4) node[ground]{};
+\draw (g1.in 2) -- (3.4,0 |- g1.in 2) -- (3.4,-1.6) node[below, align=center, font=\small]{línea PARO\\(Figura~\ref{fig:entradas}b)};
+\draw (g1.out) -- (6.6,0) to[R, l={\SI{330}{\ohm}}] (9.0,0) to[led, l={verde KM1}] (9.0,-2.0) node[ground]{};
+\node[font=\small, align=center] at (5,1.2) {U1 - 74HC08};
+\end{circuitikz}
+\caption{La compuerta Y deja pasar la orden del ESP32 solo si PARO está en reposo. La resistencia de \SI{10}{k\ohm} mantiene \sig{CMD1} en 0 mientras el ESP32 arranca.}
+\label{fig:p3}
+\end{figure}
+
+
+\begin{figure}[H]\centering
+\begin{tikzpicture}[scale=0.8, transform shape, font=\small]
+\draw[thick, fill=fondo] (0,0) rectangle (2.6,7.2);
+\draw (1.0,7.2) arc (180:360:0.3);
+\node[font=\bfseries] at (1.3,7.8) {74HC08 (vista desde arriba)};
+\foreach \n/\t [count=\i] in {1/{\textbf{CMD1} (GPIO 23)},2/{\textbf{PARO}},3/{→ \SI{330}{\ohm} → LED verde},4/{\textbf{CMD2} (GPIO 22) - práctica 4},5/{\textbf{PARO} - práctica 4},6/{→ \SI{330}{\ohm} → LED naranja - práctica 4},7/{\textbf{GND}}} {
+  \draw (-0.4,7.6-\i) -- (0,7.6-\i); \node[left] at (-0.4,7.6-\i) {\t}; \node[font=\scriptsize] at (0.3,7.6-\i) {\n};}
+\foreach \n/\t [count=\i] in {8/{libre},9/{a \textbf{GND}},10/{a \textbf{GND}},11/{libre},12/{a \textbf{GND}},13/{a \textbf{GND}},14/{\textbf{3V3}}} {
+  \draw (2.6,\i-0.4) -- (3.0,\i-0.4); \node[right] at (3.0,\i-0.4) {\t}; \node[font=\scriptsize] at (2.25,\i-0.4) {\n};}
+\end{tikzpicture}
+\caption{Conexiones del integrado. Ponga el condensador de \SI{100}{nF} entre los pines 14 y 7. Las entradas que no se usan (9, 10, 12, 13) van a \sig{GND}: tampoco pueden quedar al aire. Hasta la práctica 4, conecte también los pines 4 y 5 a \sig{GND}.}
+\label{fig:pinout}
+\end{figure}
+
+
+\begin{enumerate}
+  \item Con el USB desconectado, coloque el 74HC08 atravesando el canal central, con la muesca hacia arriba. Arme la Figura~\ref{fig:pinout} y luego la Figura~\ref{fig:p3}.
+  \item Pida al instructor que revise: pin 14 a \sig{3V3}, pin 7 a \sig{GND}, condensador cerámico de \SI{100}{nF} lo más cerca posible del integrado (no tiene polaridad) y \textbf{ausencia de cortocircuitos}. Use un \textbf{74HC08} compatible con 3,3 V; no lo sustituya automáticamente por un 74LS08.
+  \item Escriba \texttt{3} y realice los eventos de la tabla, en orden. El LED rojo indica FALLA.
+\end{enumerate}
+
+\begin{center}\small\renewcommand{\arraystretch}{1.45}
+\begin{tabularx}{\linewidth}{@{}X c c@{}}
+\toprule
+\textbf{Evento} & \textbf{LED verde: predigo} & \textbf{LED verde: observo}\\
+\midrule
+Pulsar y soltar MARCHA & \linea[1.6cm] & \linea[1.6cm]\\
+Pulsar y soltar PARO & \linea[1.6cm] & \linea[1.6cm]\\
+MARCHA, luego FALLA en ON y otra vez en OFF & \linea[1.6cm] & \linea[1.6cm]\\
+Mantener PARO pulsado y pulsar MARCHA & \linea[1.6cm] & \linea[1.6cm]\\
+Escribir \texttt{b} (programa \textbf{trabado}, \sig{CMD1} = 1 siempre) y pulsar PARO & \linea[1.6cm] & \linea[1.6cm]\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\textbf{Preguntas.} (1) ¿Qué hace que el LED siga encendido después de soltar MARCHA? (2) Después de una FALLA, ¿por qué hay que pulsar MARCHA otra vez? (3) Con el programa trabado, ¿quién apagó el LED: el ESP32 o la compuerta? ¿Por qué eso importa en un tablero real?
+
+% ===================================================================
+\section{Transferencia red–planta}
+
+\begin{objetivo}
+Usar los mismos elementos para pasar la carga de la red a la planta: confirmar la falla, esperar, transferir y volver.
+\end{objetivo}
+
+Ahora el DIP representa las fuentes: \textbf{A = red apta}, \textbf{B = planta disponible}. El LED verde es KM1 (carga en red), el naranja es KM2 (carga en planta) y el rojo es la alarma. El ESP32 aplica los tiempos del caso, reducidos para el aula:
+
+\begin{center}\small\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{}l l@{}}
+\toprule
+La red debe faltar \SI{3}{s} seguidos & para confirmar la falla (un microcorte no transfiere)\\
+\SI{2}{s} sin ninguna orden KM1/KM2 & tiempo muerto antes de cerrar la otra salida\\
+La red debe volver \SI{5}{s} seguidos & para iniciar el retorno a KM1 (un retorno inestable no cuenta)\\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\begin{clave}
+\textbf{Qué debe observar con el programa de referencia:} si A pasa a OFF y B sigue en ON, KM1 se desconecta tras \SI{3}{s} y KM2 se conecta \SI{2}{s} después (\textbf{aproximadamente 5 s desde la caída}). Si A vuelve a ON mientras se alimenta desde B, se esperan \SI{5}{s} de red estable, se desconecta KM2 y pasan \SI{2}{s} antes de conectar KM1 (\textbf{aproximadamente 7 s}). Los tiempos pueden variar ligeramente por la lectura periódica del controlador. El banco \textbf{no mide la tensión} de ninguna fuente: los DIP representan estados simulados.
+\end{clave}
+
+\textbf{PARO en la práctica 4:} la compuerta AND apaga físicamente ambos indicadores mientras se mantiene pulsado. El programa también pasa a un estado detenido; para reiniciar, libere PARO y escriba \texttt{4} de nuevo. El fallo forzado con \texttt{k} demuestra que las dos compuertas AND \textbf{no} impiden órdenes simultáneas entre KM1 y KM2.
+
+
+\begin{figure}[H]\centering
+\begin{circuitikz}[scale=0.9, transform shape]
+\node[and port] (g2) at (5,0) {};
+\node[font=\tiny, above left] at (g2.in 1) {4};
+\node[font=\tiny, below left] at (g2.in 2) {5};
+\node[font=\tiny, above right] at (g2.out) {6};
+\draw (g2.in 1) -- (2.0,0 |- g2.in 1) coordinate (c2) -- (0.6,0 |- g2.in 1) node[left]{GPIO 22 (\sig{CMD2})};
+\draw (c2) to[R, l_={\SI{10}{k\ohm}}, *-] (2.0,-2.4) node[ground]{};
+\draw (g2.in 2) -- (3.4,0 |- g2.in 2) -- (3.4,-1.6) node[below, align=center, font=\small]{línea PARO\\(misma del pin 2)};
+\draw (g2.out) -- (6.6,0) to[R, l={\SI{330}{\ohm}}] (9.0,0) to[led, l={naranja KM2}] (9.0,-2.0) node[ground]{};
+\node[font=\small, align=center] at (5,1.2) {segunda compuerta del mismo 74HC08};
+\end{circuitikz}
+\caption{Se agrega la segunda compuerta: igual a la Figura~\ref{fig:p3}, con pines 4, 5 y 6. Retire antes los jumpers que llevaban los pines 4 y 5 a \sig{GND}.}
+\label{fig:p4}
+\end{figure}
+
+
+\begin{enumerate}
+  \item Con el USB desconectado, arme la Figura~\ref{fig:p4}.
+  \item Conecte el USB, ponga A = ON, B = ON y PARO liberado, y escriba \texttt{4}. Debe encender el verde (KM1).
+  \item Realice los eventos de la tabla. Use el cronómetro del celular y lea los mensajes del monitor.
+\end{enumerate}
+
+\begin{center}\small\renewcommand{\arraystretch}{1.45}
+\begin{tabularx}{\linewidth}{@{}X c c@{}}
+\toprule
+\textbf{Evento} & \textbf{Predigo} & \textbf{Observo}\\
+\midrule
+\textbf{Falla de red:} A en OFF. ¿Cuánto tarda en encender el naranja? & \linea[1.6cm] & \linea[1.6cm]\\
+\textbf{Retorno:} A en ON. ¿Cuánto tarda en volver el verde? & \linea[1.6cm] & \linea[1.6cm]\\
+\textbf{Microcorte:} A en OFF y en ON antes de \SI{3}{s}. ¿Transfiere? & \linea[1.6cm] & \linea[1.6cm]\\
+\textbf{Sin planta:} B en OFF y luego A en OFF. ¿Qué LED enciende? & \linea[1.6cm] & \linea[1.6cm]\\
+\textbf{PARO} pulsado en cualquier momento. ¿Qué pasa con los LEDs? & \linea[1.6cm] & \linea[1.6cm]\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{falla}
+Con A = ON, B = ON y PARO liberado, escriba \texttt{k}: el programa de referencia simula un error y ordena KM1 y KM2 a la vez. ¿Qué ve? En un tablero real, esa condición sería inadmisible y requeriría enclavamientos independientes. Aquí solo se encienden LED indicadores. El control normal evita solapes, pero esta prueba fuerza dos órdenes simultáneas y evidencia que el PARO común no constituye un enclavamiento cruzado. \textbf{Discuta en pareja:} ¿qué tendría que agregarse \emph{por cable} para que sea imposible? (Pista: el módulo \emph{Enclavamientos} del laboratorio interactivo.) Escriba \texttt{k} otra vez: debe desaparecer la simultaneidad y la lógica debe volver al estado normal (con A = ON, solo verde).
+\end{falla}
+
+% ===================================================================
+% Consulte la tabla netlist del Anexo para cablear la figura de distribución física.
+% Figura 8: lámina integrada de conexiones eléctricas.
+
+% Convención: resistencias rectangulares, compuertas AND convencionales,
+% nodos marcados y conexiones ortogonales; no se reivindica certificación IEC.
+\clearpage
+\begin{figure}[p]
+	\centering
+	\small
+	\noindent{\bfseries\color{navy} A · Entradas y polarización}\par\vspace{4pt}
+	\noindent\color{navy}\rule{\linewidth}{0.7pt}\par\vspace{0.2cm}
+	\resizebox{0.99\linewidth}{!}{%
+		\begin{circuitikz}[european resistors, line width=0.78pt, scale=1.0, transform shape]
+			% Buses identificados; el conductor superior es 3V3 y el inferior GND.
+			\draw (0.0,5.25) -- (14.9,5.25);
+			\draw (0.0,0.0) -- (14.9,0.0);
+			\node[font=\small\bfseries,anchor=west] at (15.05,5.25) {3V3};
+			\node[font=\small\bfseries,anchor=west] at (15.05,0.0) {GND};
+			% 1 - MARCHA, 2 - PARO, 3 - A, 4 - B, 5 - FALLA.
+			\draw (1.2,5.25) to[nopb] (1.2,3.05) coordinate (marcha);
+			\draw (marcha) to[R,l_={\SI{10}{k\ohm}}] (1.2,0.0);
+			\draw (marcha) -- (2.0,3.05) node[anchor=west,font=\small]{GPIO 14};
+			\node[font=\small\bfseries] at (1.2,6.05) {S1 · MARCHA};
+			\node[font=\scriptsize,text=pizarra] at (1.2,-0.60) {pull-down};
+			\fill (marcha) circle (1.45pt);
+			\draw (4.25,5.25) to[R,l_={\SI{10}{k\ohm}}] (4.25,3.05) coordinate (paro);
+			\draw (paro) to[nopb] (4.25,0.0);
+			\draw (paro) -- (5.0,3.05) node[anchor=west,align=left,font=\small]{GPIO 13\\PARO\_OK};
+			\node[font=\small\bfseries] at (4.25,6.05) {S2 · PARO};
+			\node[font=\scriptsize,text=pizarra] at (4.25,-0.60) {pull-up};
+			\fill (paro) circle (1.45pt);
+			\draw (7.35,5.25) to[nos] (7.35,3.05) coordinate (aa);
+			\draw (aa) to[R,l_={\SI{10}{k\ohm}}] (7.35,0.0);
+			\draw (aa) -- (8.05,3.05) node[anchor=west,font=\small]{GPIO 32};
+			\node[font=\small\bfseries] at (7.35,6.05) {SW1:A · Red};
+			\node[font=\scriptsize,text=pizarra] at (7.35,-0.60) {pull-down};
+			\fill (aa) circle (1.45pt);
+			\draw (10.45,5.25) to[nos] (10.45,3.05) coordinate (bb);
+			\draw (bb) to[R,l_={\SI{10}{k\ohm}}] (10.45,0.0);
+			\draw (bb) -- (11.15,3.05) node[anchor=west,font=\small]{GPIO 33};
+			\node[font=\small\bfseries] at (10.45,6.05) {SW1:B · Planta};
+			\node[font=\scriptsize,text=pizarra] at (10.45,-0.60) {pull-down};
+			\fill (bb) circle (1.45pt);
+			\draw (13.55,5.25) to[nos] (13.55,3.05) coordinate (ff);
+			\draw (ff) to[R,l_={\SI{10}{k\ohm}}] (13.55,0.0);
+			\draw (ff) -- (14.25,3.05) node[anchor=west,font=\small]{GPIO 25};
+			\node[font=\small\bfseries] at (13.55,6.05) {SW1:C · FALLA};
+			\node[font=\scriptsize,text=pizarra] at (13.55,-0.60) {pull-down};
+			\fill (ff) circle (1.45pt);
+	\end{circuitikz}}
+	\par\vspace{0.35cm}
+	\noindent{\bfseries\color{navy} B · Habilitación por hardware e indicadores}\par\vspace{4pt}
+	\noindent\color{navy}\rule{\linewidth}{0.7pt}\par\vspace{0.15cm}
+	\resizebox{0.98\linewidth}{!}{%
+		\begin{circuitikz}[european resistors, line width=0.78pt, scale=1.0, transform shape]
+			\node[and port, scale=1.12] (g1) at (5.8,0) {};
+			\node[and port, scale=1.12] (g2) at (5.8,-3.55) {};
+			% U1:A: CMD1 from GPIO23, pulldown 10k, PARO_OK net.
+			\draw (g1.in 1) -- (2.2,0 |- g1.in 1) coordinate (c1) -- (0.2,0 |- g1.in 1) node[anchor=east,font=\small]{GPIO 23 (CMD1)};
+			\draw (c1) to[R,l_={\SI{10}{k\ohm}}, *-] (2.2,-1.7) node[ground]{};
+			\draw (g1.in 2) -- (3.65,0 |- g1.in 2) node[ocirc]{};
+			\node[font=\footnotesize,anchor=north] at (4.40,-0.70) {PARO\_OK};
+			\node[font=\small\bfseries] at (5.8,1.13) {U1:A · 74HC08};
+			\node[font=\scriptsize,above] at (g1.in 1) {1};
+			\node[font=\scriptsize,below] at (g1.in 2) {2};
+			\node[font=\scriptsize,above] at (g1.out) {3};
+			\draw (g1.out) -- (7.3,0) to[R,l={\SI{330}{\ohm}}] (9.5,0) to[led,l_={KM1 · verde}] (12.0,0) -- (12.5,0) node[ground]{};
+			% U1:B: CMD2 from GPIO22, pulldown 10k, PARO_OK net.
+			\draw (g2.in 1) -- (2.2,-3.55 |- g2.in 1) coordinate (c2) -- (0.2,-3.55 |- g2.in 1) node[anchor=east,font=\small]{GPIO 22 (CMD2)};
+			\draw (c2) to[R,l_={\SI{10}{k\ohm}}, *-] (2.2,-5.25) node[ground]{};
+			\draw (g2.in 2) -- (3.65,-3.55 |- g2.in 2) node[ocirc]{};
+			\node[font=\footnotesize,anchor=north] at (4.40,-4.25) {PARO\_OK};
+			\node[font=\small\bfseries] at (5.8,-2.42) {U1:B · 74HC08};
+			\node[font=\scriptsize,above] at (g2.in 1) {4};
+			\node[font=\scriptsize,below] at (g2.in 2) {5};
+			\node[font=\scriptsize,above] at (g2.out) {6};
+			\draw (g2.out) -- (7.3,-3.55) to[R,l={\SI{330}{\ohm}}] (9.5,-3.55) to[led,l_={KM2 · naranja}] (12.0,-3.55) -- (12.5,-3.55) node[ground]{};
+			% Independent alarm output, separate to avoid wrong gate connection.
+			\node[anchor=east,font=\small] at (5.0,-7.10) {GPIO 18 (ALARMA)};
+			\draw (5.15,-7.10) to[R,l={\SI{330}{\ohm}}] (8.8,-7.10) to[led,l_={Alarma · rojo}] (11.25,-7.10) -- (12.5,-7.10) node[ground]{};
+	\end{circuitikz}}
+	\par\vspace{0.25cm}
+	{\footnotesize\color{pizarra}U1: pin 14 a 3V3, pin 7 a GND y C1 = \SI{100}{nF} entre ambos, junto al integrado. Entradas de compuertas no usadas (9, 10, 12 y 13) a GND; salidas 8 y 11 sin conexión.}\par
+	\caption{Integración eléctrica del banco didáctico. Los nombres de red identifican las conexiones al ESP32 y al 74HC08; cada conductor se interpreta según los nodos dibujados. Las salidas son indicadores LED, no contactos de potencia.}
+	\label{fig:montaje_esquematico}
+\end{figure}
+
+\begin{landscape}
+	\begin{figure}[H]
+		\centering
+		\resizebox{\linewidth}{!}{%
+			\begin{tikzpicture}[x=1cm,y=1cm,line cap=round,>=Stealth]
+				\draw[rounded corners=5pt,thick,draw=black!23,fill=white] (0.8,0.1) rectangle (19.1,6.95);
+				\fill[black!4] (1.05,3.53) rectangle (18.80,3.86);
+				\draw[rojo!75, line width=0.85pt] (1.06,6.65) -- (18.79,6.65);
+				\draw[azul!75, line width=0.85pt] (1.06,6.15) -- (18.79,6.15);
+				\draw[rojo!75, line width=0.85pt] (1.06,1.17) -- (18.79,1.17);
+				\draw[azul!75, line width=0.85pt] (1.06,0.66) -- (18.79,0.66);
+				\node[font=\scriptsize\bfseries,text=pizarra] at (0.99,2.08) {A};
+				\node[font=\scriptsize\bfseries,text=pizarra] at (0.99,2.39) {B};
+				\node[font=\scriptsize\bfseries,text=pizarra] at (0.99,2.7) {C};
+				\node[font=\scriptsize\bfseries,text=pizarra] at (0.99,3.01) {D};
+				\node[font=\scriptsize\bfseries,text=pizarra] at (0.99,3.32) {E};
+				\node[font=\scriptsize\bfseries,text=pizarra] at (0.99,4.06) {F};
+				\node[font=\scriptsize\bfseries,text=pizarra] at (0.99,4.37) {G};
+				\node[font=\scriptsize\bfseries,text=pizarra] at (0.99,4.68) {H};
+				\node[font=\scriptsize\bfseries,text=pizarra] at (0.99,4.99) {I};
+				\node[font=\scriptsize\bfseries,text=pizarra] at (0.99,5.3) {J};
+				\fill[black!16] (1.400,2.080) circle (0.025);
+				\fill[black!16] (1.400,2.390) circle (0.025);
+				\fill[black!16] (1.400,2.700) circle (0.025);
+				\fill[black!16] (1.400,3.010) circle (0.025);
+				\fill[black!16] (1.400,3.320) circle (0.025);
+				\fill[black!16] (1.400,4.060) circle (0.025);
+				\fill[black!16] (1.400,4.370) circle (0.025);
+				\fill[black!16] (1.400,4.680) circle (0.025);
+				\fill[black!16] (1.400,4.990) circle (0.025);
+				\fill[black!16] (1.400,5.300) circle (0.025);
+				\node[font=\tiny,text=pizarra] at (1.400,5.64) {1};
+				\fill[black!16] (1.670,2.080) circle (0.025);
+				\fill[black!16] (1.670,2.390) circle (0.025);
+				\fill[black!16] (1.670,2.700) circle (0.025);
+				\fill[black!16] (1.670,3.010) circle (0.025);
+				\fill[black!16] (1.670,3.320) circle (0.025);
+				\fill[black!16] (1.670,4.060) circle (0.025);
+				\fill[black!16] (1.670,4.370) circle (0.025);
+				\fill[black!16] (1.670,4.680) circle (0.025);
+				\fill[black!16] (1.670,4.990) circle (0.025);
+				\fill[black!16] (1.670,5.300) circle (0.025);
+				\fill[black!16] (1.940,2.080) circle (0.025);
+				\fill[black!16] (1.940,2.390) circle (0.025);
+				\fill[black!16] (1.940,2.700) circle (0.025);
+				\fill[black!16] (1.940,3.010) circle (0.025);
+				\fill[black!16] (1.940,3.320) circle (0.025);
+				\fill[black!16] (1.940,4.060) circle (0.025);
+				\fill[black!16] (1.940,4.370) circle (0.025);
+				\fill[black!16] (1.940,4.680) circle (0.025);
+				\fill[black!16] (1.940,4.990) circle (0.025);
+				\fill[black!16] (1.940,5.300) circle (0.025);
+				\fill[black!16] (2.210,2.080) circle (0.025);
+				\fill[black!16] (2.210,2.390) circle (0.025);
+				\fill[black!16] (2.210,2.700) circle (0.025);
+				\fill[black!16] (2.210,3.010) circle (0.025);
+				\fill[black!16] (2.210,3.320) circle (0.025);
+				\fill[black!16] (2.210,4.060) circle (0.025);
+				\fill[black!16] (2.210,4.370) circle (0.025);
+				\fill[black!16] (2.210,4.680) circle (0.025);
+				\fill[black!16] (2.210,4.990) circle (0.025);
+				\fill[black!16] (2.210,5.300) circle (0.025);
+				\fill[black!16] (2.480,2.080) circle (0.025);
+				\fill[black!16] (2.480,2.390) circle (0.025);
+				\fill[black!16] (2.480,2.700) circle (0.025);
+				\fill[black!16] (2.480,3.010) circle (0.025);
+				\fill[black!16] (2.480,3.320) circle (0.025);
+				\fill[black!16] (2.480,4.060) circle (0.025);
+				\fill[black!16] (2.480,4.370) circle (0.025);
+				\fill[black!16] (2.480,4.680) circle (0.025);
+				\fill[black!16] (2.480,4.990) circle (0.025);
+				\fill[black!16] (2.480,5.300) circle (0.025);
+				\node[font=\tiny,text=pizarra] at (2.480,5.64) {5};
+				\fill[black!16] (2.750,2.080) circle (0.025);
+				\fill[black!16] (2.750,2.390) circle (0.025);
+				\fill[black!16] (2.750,2.700) circle (0.025);
+				\fill[black!16] (2.750,3.010) circle (0.025);
+				\fill[black!16] (2.750,3.320) circle (0.025);
+				\fill[black!16] (2.750,4.060) circle (0.025);
+				\fill[black!16] (2.750,4.370) circle (0.025);
+				\fill[black!16] (2.750,4.680) circle (0.025);
+				\fill[black!16] (2.750,4.990) circle (0.025);
+				\fill[black!16] (2.750,5.300) circle (0.025);
+				\fill[black!16] (3.020,2.080) circle (0.025);
+				\fill[black!16] (3.020,2.390) circle (0.025);
+				\fill[black!16] (3.020,2.700) circle (0.025);
+				\fill[black!16] (3.020,3.010) circle (0.025);
+				\fill[black!16] (3.020,3.320) circle (0.025);
+				\fill[black!16] (3.020,4.060) circle (0.025);
+				\fill[black!16] (3.020,4.370) circle (0.025);
+				\fill[black!16] (3.020,4.680) circle (0.025);
+				\fill[black!16] (3.020,4.990) circle (0.025);
+				\fill[black!16] (3.020,5.300) circle (0.025);
+				\fill[black!16] (3.290,2.080) circle (0.025);
+				\fill[black!16] (3.290,2.390) circle (0.025);
+				\fill[black!16] (3.290,2.700) circle (0.025);
+				\fill[black!16] (3.290,3.010) circle (0.025);
+				\fill[black!16] (3.290,3.320) circle (0.025);
+				\fill[black!16] (3.290,4.060) circle (0.025);
+				\fill[black!16] (3.290,4.370) circle (0.025);
+				\fill[black!16] (3.290,4.680) circle (0.025);
+				\fill[black!16] (3.290,4.990) circle (0.025);
+				\fill[black!16] (3.290,5.300) circle (0.025);
+				\fill[black!16] (3.560,2.080) circle (0.025);
+				\fill[black!16] (3.560,2.390) circle (0.025);
+				\fill[black!16] (3.560,2.700) circle (0.025);
+				\fill[black!16] (3.560,3.010) circle (0.025);
+				\fill[black!16] (3.560,3.320) circle (0.025);
+				\fill[black!16] (3.560,4.060) circle (0.025);
+				\fill[black!16] (3.560,4.370) circle (0.025);
+				\fill[black!16] (3.560,4.680) circle (0.025);
+				\fill[black!16] (3.560,4.990) circle (0.025);
+				\fill[black!16] (3.560,5.300) circle (0.025);
+				\fill[black!16] (3.830,2.080) circle (0.025);
+				\fill[black!16] (3.830,2.390) circle (0.025);
+				\fill[black!16] (3.830,2.700) circle (0.025);
+				\fill[black!16] (3.830,3.010) circle (0.025);
+				\fill[black!16] (3.830,3.320) circle (0.025);
+				\fill[black!16] (3.830,4.060) circle (0.025);
+				\fill[black!16] (3.830,4.370) circle (0.025);
+				\fill[black!16] (3.830,4.680) circle (0.025);
+				\fill[black!16] (3.830,4.990) circle (0.025);
+				\fill[black!16] (3.830,5.300) circle (0.025);
+				\node[font=\tiny,text=pizarra] at (3.830,5.64) {10};
+				\fill[black!16] (4.100,2.080) circle (0.025);
+				\fill[black!16] (4.100,2.390) circle (0.025);
+				\fill[black!16] (4.100,2.700) circle (0.025);
+				\fill[black!16] (4.100,3.010) circle (0.025);
+				\fill[black!16] (4.100,3.320) circle (0.025);
+				\fill[black!16] (4.100,4.060) circle (0.025);
+				\fill[black!16] (4.100,4.370) circle (0.025);
+				\fill[black!16] (4.100,4.680) circle (0.025);
+				\fill[black!16] (4.100,4.990) circle (0.025);
+				\fill[black!16] (4.100,5.300) circle (0.025);
+				\fill[black!16] (4.370,2.080) circle (0.025);
+				\fill[black!16] (4.370,2.390) circle (0.025);
+				\fill[black!16] (4.370,2.700) circle (0.025);
+				\fill[black!16] (4.370,3.010) circle (0.025);
+				\fill[black!16] (4.370,3.320) circle (0.025);
+				\fill[black!16] (4.370,4.060) circle (0.025);
+				\fill[black!16] (4.370,4.370) circle (0.025);
+				\fill[black!16] (4.370,4.680) circle (0.025);
+				\fill[black!16] (4.370,4.990) circle (0.025);
+				\fill[black!16] (4.370,5.300) circle (0.025);
+				\fill[black!16] (4.640,2.080) circle (0.025);
+				\fill[black!16] (4.640,2.390) circle (0.025);
+				\fill[black!16] (4.640,2.700) circle (0.025);
+				\fill[black!16] (4.640,3.010) circle (0.025);
+				\fill[black!16] (4.640,3.320) circle (0.025);
+				\fill[black!16] (4.640,4.060) circle (0.025);
+				\fill[black!16] (4.640,4.370) circle (0.025);
+				\fill[black!16] (4.640,4.680) circle (0.025);
+				\fill[black!16] (4.640,4.990) circle (0.025);
+				\fill[black!16] (4.640,5.300) circle (0.025);
+				\fill[black!16] (4.910,2.080) circle (0.025);
+				\fill[black!16] (4.910,2.390) circle (0.025);
+				\fill[black!16] (4.910,2.700) circle (0.025);
+				\fill[black!16] (4.910,3.010) circle (0.025);
+				\fill[black!16] (4.910,3.320) circle (0.025);
+				\fill[black!16] (4.910,4.060) circle (0.025);
+				\fill[black!16] (4.910,4.370) circle (0.025);
+				\fill[black!16] (4.910,4.680) circle (0.025);
+				\fill[black!16] (4.910,4.990) circle (0.025);
+				\fill[black!16] (4.910,5.300) circle (0.025);
+				\fill[black!16] (5.180,2.080) circle (0.025);
+				\fill[black!16] (5.180,2.390) circle (0.025);
+				\fill[black!16] (5.180,2.700) circle (0.025);
+				\fill[black!16] (5.180,3.010) circle (0.025);
+				\fill[black!16] (5.180,3.320) circle (0.025);
+				\fill[black!16] (5.180,4.060) circle (0.025);
+				\fill[black!16] (5.180,4.370) circle (0.025);
+				\fill[black!16] (5.180,4.680) circle (0.025);
+				\fill[black!16] (5.180,4.990) circle (0.025);
+				\fill[black!16] (5.180,5.300) circle (0.025);
+				\node[font=\tiny,text=pizarra] at (5.180,5.64) {15};
+				\fill[black!16] (5.450,2.080) circle (0.025);
+				\fill[black!16] (5.450,2.390) circle (0.025);
+				\fill[black!16] (5.450,2.700) circle (0.025);
+				\fill[black!16] (5.450,3.010) circle (0.025);
+				\fill[black!16] (5.450,3.320) circle (0.025);
+				\fill[black!16] (5.450,4.060) circle (0.025);
+				\fill[black!16] (5.450,4.370) circle (0.025);
+				\fill[black!16] (5.450,4.680) circle (0.025);
+				\fill[black!16] (5.450,4.990) circle (0.025);
+				\fill[black!16] (5.450,5.300) circle (0.025);
+				\fill[black!16] (5.720,2.080) circle (0.025);
+				\fill[black!16] (5.720,2.390) circle (0.025);
+				\fill[black!16] (5.720,2.700) circle (0.025);
+				\fill[black!16] (5.720,3.010) circle (0.025);
+				\fill[black!16] (5.720,3.320) circle (0.025);
+				\fill[black!16] (5.720,4.060) circle (0.025);
+				\fill[black!16] (5.720,4.370) circle (0.025);
+				\fill[black!16] (5.720,4.680) circle (0.025);
+				\fill[black!16] (5.720,4.990) circle (0.025);
+				\fill[black!16] (5.720,5.300) circle (0.025);
+				\fill[black!16] (5.990,2.080) circle (0.025);
+				\fill[black!16] (5.990,2.390) circle (0.025);
+				\fill[black!16] (5.990,2.700) circle (0.025);
+				\fill[black!16] (5.990,3.010) circle (0.025);
+				\fill[black!16] (5.990,3.320) circle (0.025);
+				\fill[black!16] (5.990,4.060) circle (0.025);
+				\fill[black!16] (5.990,4.370) circle (0.025);
+				\fill[black!16] (5.990,4.680) circle (0.025);
+				\fill[black!16] (5.990,4.990) circle (0.025);
+				\fill[black!16] (5.990,5.300) circle (0.025);
+				\fill[black!16] (6.260,2.080) circle (0.025);
+				\fill[black!16] (6.260,2.390) circle (0.025);
+				\fill[black!16] (6.260,2.700) circle (0.025);
+				\fill[black!16] (6.260,3.010) circle (0.025);
+				\fill[black!16] (6.260,3.320) circle (0.025);
+				\fill[black!16] (6.260,4.060) circle (0.025);
+				\fill[black!16] (6.260,4.370) circle (0.025);
+				\fill[black!16] (6.260,4.680) circle (0.025);
+				\fill[black!16] (6.260,4.990) circle (0.025);
+				\fill[black!16] (6.260,5.300) circle (0.025);
+				\fill[black!16] (6.530,2.080) circle (0.025);
+				\fill[black!16] (6.530,2.390) circle (0.025);
+				\fill[black!16] (6.530,2.700) circle (0.025);
+				\fill[black!16] (6.530,3.010) circle (0.025);
+				\fill[black!16] (6.530,3.320) circle (0.025);
+				\fill[black!16] (6.530,4.060) circle (0.025);
+				\fill[black!16] (6.530,4.370) circle (0.025);
+				\fill[black!16] (6.530,4.680) circle (0.025);
+				\fill[black!16] (6.530,4.990) circle (0.025);
+				\fill[black!16] (6.530,5.300) circle (0.025);
+				\node[font=\tiny,text=pizarra] at (6.530,5.64) {20};
+				\fill[black!16] (6.800,2.080) circle (0.025);
+				\fill[black!16] (6.800,2.390) circle (0.025);
+				\fill[black!16] (6.800,2.700) circle (0.025);
+				\fill[black!16] (6.800,3.010) circle (0.025);
+				\fill[black!16] (6.800,3.320) circle (0.025);
+				\fill[black!16] (6.800,4.060) circle (0.025);
+				\fill[black!16] (6.800,4.370) circle (0.025);
+				\fill[black!16] (6.800,4.680) circle (0.025);
+				\fill[black!16] (6.800,4.990) circle (0.025);
+				\fill[black!16] (6.800,5.300) circle (0.025);
+				\fill[black!16] (7.070,2.080) circle (0.025);
+				\fill[black!16] (7.070,2.390) circle (0.025);
+				\fill[black!16] (7.070,2.700) circle (0.025);
+				\fill[black!16] (7.070,3.010) circle (0.025);
+				\fill[black!16] (7.070,3.320) circle (0.025);
+				\fill[black!16] (7.070,4.060) circle (0.025);
+				\fill[black!16] (7.070,4.370) circle (0.025);
+				\fill[black!16] (7.070,4.680) circle (0.025);
+				\fill[black!16] (7.070,4.990) circle (0.025);
+				\fill[black!16] (7.070,5.300) circle (0.025);
+				\fill[black!16] (7.340,2.080) circle (0.025);
+				\fill[black!16] (7.340,2.390) circle (0.025);
+				\fill[black!16] (7.340,2.700) circle (0.025);
+				\fill[black!16] (7.340,3.010) circle (0.025);
+				\fill[black!16] (7.340,3.320) circle (0.025);
+				\fill[black!16] (7.340,4.060) circle (0.025);
+				\fill[black!16] (7.340,4.370) circle (0.025);
+				\fill[black!16] (7.340,4.680) circle (0.025);
+				\fill[black!16] (7.340,4.990) circle (0.025);
+				\fill[black!16] (7.340,5.300) circle (0.025);
+				\fill[black!16] (7.610,2.080) circle (0.025);
+				\fill[black!16] (7.610,2.390) circle (0.025);
+				\fill[black!16] (7.610,2.700) circle (0.025);
+				\fill[black!16] (7.610,3.010) circle (0.025);
+				\fill[black!16] (7.610,3.320) circle (0.025);
+				\fill[black!16] (7.610,4.060) circle (0.025);
+				\fill[black!16] (7.610,4.370) circle (0.025);
+				\fill[black!16] (7.610,4.680) circle (0.025);
+				\fill[black!16] (7.610,4.990) circle (0.025);
+				\fill[black!16] (7.610,5.300) circle (0.025);
+				\fill[black!16] (7.880,2.080) circle (0.025);
+				\fill[black!16] (7.880,2.390) circle (0.025);
+				\fill[black!16] (7.880,2.700) circle (0.025);
+				\fill[black!16] (7.880,3.010) circle (0.025);
+				\fill[black!16] (7.880,3.320) circle (0.025);
+				\fill[black!16] (7.880,4.060) circle (0.025);
+				\fill[black!16] (7.880,4.370) circle (0.025);
+				\fill[black!16] (7.880,4.680) circle (0.025);
+				\fill[black!16] (7.880,4.990) circle (0.025);
+				\fill[black!16] (7.880,5.300) circle (0.025);
+				\node[font=\tiny,text=pizarra] at (7.880,5.64) {25};
+				\fill[black!16] (8.150,2.080) circle (0.025);
+				\fill[black!16] (8.150,2.390) circle (0.025);
+				\fill[black!16] (8.150,2.700) circle (0.025);
+				\fill[black!16] (8.150,3.010) circle (0.025);
+				\fill[black!16] (8.150,3.320) circle (0.025);
+				\fill[black!16] (8.150,4.060) circle (0.025);
+				\fill[black!16] (8.150,4.370) circle (0.025);
+				\fill[black!16] (8.150,4.680) circle (0.025);
+				\fill[black!16] (8.150,4.990) circle (0.025);
+				\fill[black!16] (8.150,5.300) circle (0.025);
+				\fill[black!16] (8.420,2.080) circle (0.025);
+				\fill[black!16] (8.420,2.390) circle (0.025);
+				\fill[black!16] (8.420,2.700) circle (0.025);
+				\fill[black!16] (8.420,3.010) circle (0.025);
+				\fill[black!16] (8.420,3.320) circle (0.025);
+				\fill[black!16] (8.420,4.060) circle (0.025);
+				\fill[black!16] (8.420,4.370) circle (0.025);
+				\fill[black!16] (8.420,4.680) circle (0.025);
+				\fill[black!16] (8.420,4.990) circle (0.025);
+				\fill[black!16] (8.420,5.300) circle (0.025);
+				\fill[black!16] (8.690,2.080) circle (0.025);
+				\fill[black!16] (8.690,2.390) circle (0.025);
+				\fill[black!16] (8.690,2.700) circle (0.025);
+				\fill[black!16] (8.690,3.010) circle (0.025);
+				\fill[black!16] (8.690,3.320) circle (0.025);
+				\fill[black!16] (8.690,4.060) circle (0.025);
+				\fill[black!16] (8.690,4.370) circle (0.025);
+				\fill[black!16] (8.690,4.680) circle (0.025);
+				\fill[black!16] (8.690,4.990) circle (0.025);
+				\fill[black!16] (8.690,5.300) circle (0.025);
+				\fill[black!16] (8.960,2.080) circle (0.025);
+				\fill[black!16] (8.960,2.390) circle (0.025);
+				\fill[black!16] (8.960,2.700) circle (0.025);
+				\fill[black!16] (8.960,3.010) circle (0.025);
+				\fill[black!16] (8.960,3.320) circle (0.025);
+				\fill[black!16] (8.960,4.060) circle (0.025);
+				\fill[black!16] (8.960,4.370) circle (0.025);
+				\fill[black!16] (8.960,4.680) circle (0.025);
+				\fill[black!16] (8.960,4.990) circle (0.025);
+				\fill[black!16] (8.960,5.300) circle (0.025);
+				\fill[black!16] (9.230,2.080) circle (0.025);
+				\fill[black!16] (9.230,2.390) circle (0.025);
+				\fill[black!16] (9.230,2.700) circle (0.025);
+				\fill[black!16] (9.230,3.010) circle (0.025);
+				\fill[black!16] (9.230,3.320) circle (0.025);
+				\fill[black!16] (9.230,4.060) circle (0.025);
+				\fill[black!16] (9.230,4.370) circle (0.025);
+				\fill[black!16] (9.230,4.680) circle (0.025);
+				\fill[black!16] (9.230,4.990) circle (0.025);
+				\fill[black!16] (9.230,5.300) circle (0.025);
+				\node[font=\tiny,text=pizarra] at (9.230,5.64) {30};
+				\fill[black!16] (9.500,2.080) circle (0.025);
+				\fill[black!16] (9.500,2.390) circle (0.025);
+				\fill[black!16] (9.500,2.700) circle (0.025);
+				\fill[black!16] (9.500,3.010) circle (0.025);
+				\fill[black!16] (9.500,3.320) circle (0.025);
+				\fill[black!16] (9.500,4.060) circle (0.025);
+				\fill[black!16] (9.500,4.370) circle (0.025);
+				\fill[black!16] (9.500,4.680) circle (0.025);
+				\fill[black!16] (9.500,4.990) circle (0.025);
+				\fill[black!16] (9.500,5.300) circle (0.025);
+				\fill[black!16] (9.770,2.080) circle (0.025);
+				\fill[black!16] (9.770,2.390) circle (0.025);
+				\fill[black!16] (9.770,2.700) circle (0.025);
+				\fill[black!16] (9.770,3.010) circle (0.025);
+				\fill[black!16] (9.770,3.320) circle (0.025);
+				\fill[black!16] (9.770,4.060) circle (0.025);
+				\fill[black!16] (9.770,4.370) circle (0.025);
+				\fill[black!16] (9.770,4.680) circle (0.025);
+				\fill[black!16] (9.770,4.990) circle (0.025);
+				\fill[black!16] (9.770,5.300) circle (0.025);
+				\fill[black!16] (10.040,2.080) circle (0.025);
+				\fill[black!16] (10.040,2.390) circle (0.025);
+				\fill[black!16] (10.040,2.700) circle (0.025);
+				\fill[black!16] (10.040,3.010) circle (0.025);
+				\fill[black!16] (10.040,3.320) circle (0.025);
+				\fill[black!16] (10.040,4.060) circle (0.025);
+				\fill[black!16] (10.040,4.370) circle (0.025);
+				\fill[black!16] (10.040,4.680) circle (0.025);
+				\fill[black!16] (10.040,4.990) circle (0.025);
+				\fill[black!16] (10.040,5.300) circle (0.025);
+				\fill[black!16] (10.310,2.080) circle (0.025);
+				\fill[black!16] (10.310,2.390) circle (0.025);
+				\fill[black!16] (10.310,2.700) circle (0.025);
+				\fill[black!16] (10.310,3.010) circle (0.025);
+				\fill[black!16] (10.310,3.320) circle (0.025);
+				\fill[black!16] (10.310,4.060) circle (0.025);
+				\fill[black!16] (10.310,4.370) circle (0.025);
+				\fill[black!16] (10.310,4.680) circle (0.025);
+				\fill[black!16] (10.310,4.990) circle (0.025);
+				\fill[black!16] (10.310,5.300) circle (0.025);
+				\fill[black!16] (10.580,2.080) circle (0.025);
+				\fill[black!16] (10.580,2.390) circle (0.025);
+				\fill[black!16] (10.580,2.700) circle (0.025);
+				\fill[black!16] (10.580,3.010) circle (0.025);
+				\fill[black!16] (10.580,3.320) circle (0.025);
+				\fill[black!16] (10.580,4.060) circle (0.025);
+				\fill[black!16] (10.580,4.370) circle (0.025);
+				\fill[black!16] (10.580,4.680) circle (0.025);
+				\fill[black!16] (10.580,4.990) circle (0.025);
+				\fill[black!16] (10.580,5.300) circle (0.025);
+				\node[font=\tiny,text=pizarra] at (10.580,5.64) {35};
+				\fill[black!16] (10.850,2.080) circle (0.025);
+				\fill[black!16] (10.850,2.390) circle (0.025);
+				\fill[black!16] (10.850,2.700) circle (0.025);
+				\fill[black!16] (10.850,3.010) circle (0.025);
+				\fill[black!16] (10.850,3.320) circle (0.025);
+				\fill[black!16] (10.850,4.060) circle (0.025);
+				\fill[black!16] (10.850,4.370) circle (0.025);
+				\fill[black!16] (10.850,4.680) circle (0.025);
+				\fill[black!16] (10.850,4.990) circle (0.025);
+				\fill[black!16] (10.850,5.300) circle (0.025);
+				\fill[black!16] (11.120,2.080) circle (0.025);
+				\fill[black!16] (11.120,2.390) circle (0.025);
+				\fill[black!16] (11.120,2.700) circle (0.025);
+				\fill[black!16] (11.120,3.010) circle (0.025);
+				\fill[black!16] (11.120,3.320) circle (0.025);
+				\fill[black!16] (11.120,4.060) circle (0.025);
+				\fill[black!16] (11.120,4.370) circle (0.025);
+				\fill[black!16] (11.120,4.680) circle (0.025);
+				\fill[black!16] (11.120,4.990) circle (0.025);
+				\fill[black!16] (11.120,5.300) circle (0.025);
+				\fill[black!16] (11.390,2.080) circle (0.025);
+				\fill[black!16] (11.390,2.390) circle (0.025);
+				\fill[black!16] (11.390,2.700) circle (0.025);
+				\fill[black!16] (11.390,3.010) circle (0.025);
+				\fill[black!16] (11.390,3.320) circle (0.025);
+				\fill[black!16] (11.390,4.060) circle (0.025);
+				\fill[black!16] (11.390,4.370) circle (0.025);
+				\fill[black!16] (11.390,4.680) circle (0.025);
+				\fill[black!16] (11.390,4.990) circle (0.025);
+				\fill[black!16] (11.390,5.300) circle (0.025);
+				\fill[black!16] (11.660,2.080) circle (0.025);
+				\fill[black!16] (11.660,2.390) circle (0.025);
+				\fill[black!16] (11.660,2.700) circle (0.025);
+				\fill[black!16] (11.660,3.010) circle (0.025);
+				\fill[black!16] (11.660,3.320) circle (0.025);
+				\fill[black!16] (11.660,4.060) circle (0.025);
+				\fill[black!16] (11.660,4.370) circle (0.025);
+				\fill[black!16] (11.660,4.680) circle (0.025);
+				\fill[black!16] (11.660,4.990) circle (0.025);
+				\fill[black!16] (11.660,5.300) circle (0.025);
+				\fill[black!16] (11.930,2.080) circle (0.025);
+				\fill[black!16] (11.930,2.390) circle (0.025);
+				\fill[black!16] (11.930,2.700) circle (0.025);
+				\fill[black!16] (11.930,3.010) circle (0.025);
+				\fill[black!16] (11.930,3.320) circle (0.025);
+				\fill[black!16] (11.930,4.060) circle (0.025);
+				\fill[black!16] (11.930,4.370) circle (0.025);
+				\fill[black!16] (11.930,4.680) circle (0.025);
+				\fill[black!16] (11.930,4.990) circle (0.025);
+				\fill[black!16] (11.930,5.300) circle (0.025);
+				\node[font=\tiny,text=pizarra] at (11.930,5.64) {40};
+				\fill[black!16] (12.200,2.080) circle (0.025);
+				\fill[black!16] (12.200,2.390) circle (0.025);
+				\fill[black!16] (12.200,2.700) circle (0.025);
+				\fill[black!16] (12.200,3.010) circle (0.025);
+				\fill[black!16] (12.200,3.320) circle (0.025);
+				\fill[black!16] (12.200,4.060) circle (0.025);
+				\fill[black!16] (12.200,4.370) circle (0.025);
+				\fill[black!16] (12.200,4.680) circle (0.025);
+				\fill[black!16] (12.200,4.990) circle (0.025);
+				\fill[black!16] (12.200,5.300) circle (0.025);
+				\fill[black!16] (12.470,2.080) circle (0.025);
+				\fill[black!16] (12.470,2.390) circle (0.025);
+				\fill[black!16] (12.470,2.700) circle (0.025);
+				\fill[black!16] (12.470,3.010) circle (0.025);
+				\fill[black!16] (12.470,3.320) circle (0.025);
+				\fill[black!16] (12.470,4.060) circle (0.025);
+				\fill[black!16] (12.470,4.370) circle (0.025);
+				\fill[black!16] (12.470,4.680) circle (0.025);
+				\fill[black!16] (12.470,4.990) circle (0.025);
+				\fill[black!16] (12.470,5.300) circle (0.025);
+				\fill[black!16] (12.740,2.080) circle (0.025);
+				\fill[black!16] (12.740,2.390) circle (0.025);
+				\fill[black!16] (12.740,2.700) circle (0.025);
+				\fill[black!16] (12.740,3.010) circle (0.025);
+				\fill[black!16] (12.740,3.320) circle (0.025);
+				\fill[black!16] (12.740,4.060) circle (0.025);
+				\fill[black!16] (12.740,4.370) circle (0.025);
+				\fill[black!16] (12.740,4.680) circle (0.025);
+				\fill[black!16] (12.740,4.990) circle (0.025);
+				\fill[black!16] (12.740,5.300) circle (0.025);
+				\fill[black!16] (13.010,2.080) circle (0.025);
+				\fill[black!16] (13.010,2.390) circle (0.025);
+				\fill[black!16] (13.010,2.700) circle (0.025);
+				\fill[black!16] (13.010,3.010) circle (0.025);
+				\fill[black!16] (13.010,3.320) circle (0.025);
+				\fill[black!16] (13.010,4.060) circle (0.025);
+				\fill[black!16] (13.010,4.370) circle (0.025);
+				\fill[black!16] (13.010,4.680) circle (0.025);
+				\fill[black!16] (13.010,4.990) circle (0.025);
+				\fill[black!16] (13.010,5.300) circle (0.025);
+				\fill[black!16] (13.280,2.080) circle (0.025);
+				\fill[black!16] (13.280,2.390) circle (0.025);
+				\fill[black!16] (13.280,2.700) circle (0.025);
+				\fill[black!16] (13.280,3.010) circle (0.025);
+				\fill[black!16] (13.280,3.320) circle (0.025);
+				\fill[black!16] (13.280,4.060) circle (0.025);
+				\fill[black!16] (13.280,4.370) circle (0.025);
+				\fill[black!16] (13.280,4.680) circle (0.025);
+				\fill[black!16] (13.280,4.990) circle (0.025);
+				\fill[black!16] (13.280,5.300) circle (0.025);
+				\node[font=\tiny,text=pizarra] at (13.280,5.64) {45};
+				\fill[black!16] (13.550,2.080) circle (0.025);
+				\fill[black!16] (13.550,2.390) circle (0.025);
+				\fill[black!16] (13.550,2.700) circle (0.025);
+				\fill[black!16] (13.550,3.010) circle (0.025);
+				\fill[black!16] (13.550,3.320) circle (0.025);
+				\fill[black!16] (13.550,4.060) circle (0.025);
+				\fill[black!16] (13.550,4.370) circle (0.025);
+				\fill[black!16] (13.550,4.680) circle (0.025);
+				\fill[black!16] (13.550,4.990) circle (0.025);
+				\fill[black!16] (13.550,5.300) circle (0.025);
+				\fill[black!16] (13.820,2.080) circle (0.025);
+				\fill[black!16] (13.820,2.390) circle (0.025);
+				\fill[black!16] (13.820,2.700) circle (0.025);
+				\fill[black!16] (13.820,3.010) circle (0.025);
+				\fill[black!16] (13.820,3.320) circle (0.025);
+				\fill[black!16] (13.820,4.060) circle (0.025);
+				\fill[black!16] (13.820,4.370) circle (0.025);
+				\fill[black!16] (13.820,4.680) circle (0.025);
+				\fill[black!16] (13.820,4.990) circle (0.025);
+				\fill[black!16] (13.820,5.300) circle (0.025);
+				\fill[black!16] (14.090,2.080) circle (0.025);
+				\fill[black!16] (14.090,2.390) circle (0.025);
+				\fill[black!16] (14.090,2.700) circle (0.025);
+				\fill[black!16] (14.090,3.010) circle (0.025);
+				\fill[black!16] (14.090,3.320) circle (0.025);
+				\fill[black!16] (14.090,4.060) circle (0.025);
+				\fill[black!16] (14.090,4.370) circle (0.025);
+				\fill[black!16] (14.090,4.680) circle (0.025);
+				\fill[black!16] (14.090,4.990) circle (0.025);
+				\fill[black!16] (14.090,5.300) circle (0.025);
+				\fill[black!16] (14.360,2.080) circle (0.025);
+				\fill[black!16] (14.360,2.390) circle (0.025);
+				\fill[black!16] (14.360,2.700) circle (0.025);
+				\fill[black!16] (14.360,3.010) circle (0.025);
+				\fill[black!16] (14.360,3.320) circle (0.025);
+				\fill[black!16] (14.360,4.060) circle (0.025);
+				\fill[black!16] (14.360,4.370) circle (0.025);
+				\fill[black!16] (14.360,4.680) circle (0.025);
+				\fill[black!16] (14.360,4.990) circle (0.025);
+				\fill[black!16] (14.360,5.300) circle (0.025);
+				\fill[black!16] (14.630,2.080) circle (0.025);
+				\fill[black!16] (14.630,2.390) circle (0.025);
+				\fill[black!16] (14.630,2.700) circle (0.025);
+				\fill[black!16] (14.630,3.010) circle (0.025);
+				\fill[black!16] (14.630,3.320) circle (0.025);
+				\fill[black!16] (14.630,4.060) circle (0.025);
+				\fill[black!16] (14.630,4.370) circle (0.025);
+				\fill[black!16] (14.630,4.680) circle (0.025);
+				\fill[black!16] (14.630,4.990) circle (0.025);
+				\fill[black!16] (14.630,5.300) circle (0.025);
+				\node[font=\tiny,text=pizarra] at (14.630,5.64) {50};
+				\fill[black!16] (14.900,2.080) circle (0.025);
+				\fill[black!16] (14.900,2.390) circle (0.025);
+				\fill[black!16] (14.900,2.700) circle (0.025);
+				\fill[black!16] (14.900,3.010) circle (0.025);
+				\fill[black!16] (14.900,3.320) circle (0.025);
+				\fill[black!16] (14.900,4.060) circle (0.025);
+				\fill[black!16] (14.900,4.370) circle (0.025);
+				\fill[black!16] (14.900,4.680) circle (0.025);
+				\fill[black!16] (14.900,4.990) circle (0.025);
+				\fill[black!16] (14.900,5.300) circle (0.025);
+				\fill[black!16] (15.170,2.080) circle (0.025);
+				\fill[black!16] (15.170,2.390) circle (0.025);
+				\fill[black!16] (15.170,2.700) circle (0.025);
+				\fill[black!16] (15.170,3.010) circle (0.025);
+				\fill[black!16] (15.170,3.320) circle (0.025);
+				\fill[black!16] (15.170,4.060) circle (0.025);
+				\fill[black!16] (15.170,4.370) circle (0.025);
+				\fill[black!16] (15.170,4.680) circle (0.025);
+				\fill[black!16] (15.170,4.990) circle (0.025);
+				\fill[black!16] (15.170,5.300) circle (0.025);
+				\fill[black!16] (15.440,2.080) circle (0.025);
+				\fill[black!16] (15.440,2.390) circle (0.025);
+				\fill[black!16] (15.440,2.700) circle (0.025);
+				\fill[black!16] (15.440,3.010) circle (0.025);
+				\fill[black!16] (15.440,3.320) circle (0.025);
+				\fill[black!16] (15.440,4.060) circle (0.025);
+				\fill[black!16] (15.440,4.370) circle (0.025);
+				\fill[black!16] (15.440,4.680) circle (0.025);
+				\fill[black!16] (15.440,4.990) circle (0.025);
+				\fill[black!16] (15.440,5.300) circle (0.025);
+				\fill[black!16] (15.710,2.080) circle (0.025);
+				\fill[black!16] (15.710,2.390) circle (0.025);
+				\fill[black!16] (15.710,2.700) circle (0.025);
+				\fill[black!16] (15.710,3.010) circle (0.025);
+				\fill[black!16] (15.710,3.320) circle (0.025);
+				\fill[black!16] (15.710,4.060) circle (0.025);
+				\fill[black!16] (15.710,4.370) circle (0.025);
+				\fill[black!16] (15.710,4.680) circle (0.025);
+				\fill[black!16] (15.710,4.990) circle (0.025);
+				\fill[black!16] (15.710,5.300) circle (0.025);
+				\fill[black!16] (15.980,2.080) circle (0.025);
+				\fill[black!16] (15.980,2.390) circle (0.025);
+				\fill[black!16] (15.980,2.700) circle (0.025);
+				\fill[black!16] (15.980,3.010) circle (0.025);
+				\fill[black!16] (15.980,3.320) circle (0.025);
+				\fill[black!16] (15.980,4.060) circle (0.025);
+				\fill[black!16] (15.980,4.370) circle (0.025);
+				\fill[black!16] (15.980,4.680) circle (0.025);
+				\fill[black!16] (15.980,4.990) circle (0.025);
+				\fill[black!16] (15.980,5.300) circle (0.025);
+				\node[font=\tiny,text=pizarra] at (15.980,5.64) {55};
+				\fill[black!16] (16.250,2.080) circle (0.025);
+				\fill[black!16] (16.250,2.390) circle (0.025);
+				\fill[black!16] (16.250,2.700) circle (0.025);
+				\fill[black!16] (16.250,3.010) circle (0.025);
+				\fill[black!16] (16.250,3.320) circle (0.025);
+				\fill[black!16] (16.250,4.060) circle (0.025);
+				\fill[black!16] (16.250,4.370) circle (0.025);
+				\fill[black!16] (16.250,4.680) circle (0.025);
+				\fill[black!16] (16.250,4.990) circle (0.025);
+				\fill[black!16] (16.250,5.300) circle (0.025);
+				\fill[black!16] (16.520,2.080) circle (0.025);
+				\fill[black!16] (16.520,2.390) circle (0.025);
+				\fill[black!16] (16.520,2.700) circle (0.025);
+				\fill[black!16] (16.520,3.010) circle (0.025);
+				\fill[black!16] (16.520,3.320) circle (0.025);
+				\fill[black!16] (16.520,4.060) circle (0.025);
+				\fill[black!16] (16.520,4.370) circle (0.025);
+				\fill[black!16] (16.520,4.680) circle (0.025);
+				\fill[black!16] (16.520,4.990) circle (0.025);
+				\fill[black!16] (16.520,5.300) circle (0.025);
+				\fill[black!16] (16.790,2.080) circle (0.025);
+				\fill[black!16] (16.790,2.390) circle (0.025);
+				\fill[black!16] (16.790,2.700) circle (0.025);
+				\fill[black!16] (16.790,3.010) circle (0.025);
+				\fill[black!16] (16.790,3.320) circle (0.025);
+				\fill[black!16] (16.790,4.060) circle (0.025);
+				\fill[black!16] (16.790,4.370) circle (0.025);
+				\fill[black!16] (16.790,4.680) circle (0.025);
+				\fill[black!16] (16.790,4.990) circle (0.025);
+				\fill[black!16] (16.790,5.300) circle (0.025);
+				\fill[black!16] (17.060,2.080) circle (0.025);
+				\fill[black!16] (17.060,2.390) circle (0.025);
+				\fill[black!16] (17.060,2.700) circle (0.025);
+				\fill[black!16] (17.060,3.010) circle (0.025);
+				\fill[black!16] (17.060,3.320) circle (0.025);
+				\fill[black!16] (17.060,4.060) circle (0.025);
+				\fill[black!16] (17.060,4.370) circle (0.025);
+				\fill[black!16] (17.060,4.680) circle (0.025);
+				\fill[black!16] (17.060,4.990) circle (0.025);
+				\fill[black!16] (17.060,5.300) circle (0.025);
+				\fill[black!16] (17.330,2.080) circle (0.025);
+				\fill[black!16] (17.330,2.390) circle (0.025);
+				\fill[black!16] (17.330,2.700) circle (0.025);
+				\fill[black!16] (17.330,3.010) circle (0.025);
+				\fill[black!16] (17.330,3.320) circle (0.025);
+				\fill[black!16] (17.330,4.060) circle (0.025);
+				\fill[black!16] (17.330,4.370) circle (0.025);
+				\fill[black!16] (17.330,4.680) circle (0.025);
+				\fill[black!16] (17.330,4.990) circle (0.025);
+				\fill[black!16] (17.330,5.300) circle (0.025);
+				\node[font=\tiny,text=pizarra] at (17.330,5.64) {60};
+				\fill[black!16] (17.600,2.080) circle (0.025);
+				\fill[black!16] (17.600,2.390) circle (0.025);
+				\fill[black!16] (17.600,2.700) circle (0.025);
+				\fill[black!16] (17.600,3.010) circle (0.025);
+				\fill[black!16] (17.600,3.320) circle (0.025);
+				\fill[black!16] (17.600,4.060) circle (0.025);
+				\fill[black!16] (17.600,4.370) circle (0.025);
+				\fill[black!16] (17.600,4.680) circle (0.025);
+				\fill[black!16] (17.600,4.990) circle (0.025);
+				\fill[black!16] (17.600,5.300) circle (0.025);
+				\fill[black!16] (17.870,2.080) circle (0.025);
+				\fill[black!16] (17.870,2.390) circle (0.025);
+				\fill[black!16] (17.870,2.700) circle (0.025);
+				\fill[black!16] (17.870,3.010) circle (0.025);
+				\fill[black!16] (17.870,3.320) circle (0.025);
+				\fill[black!16] (17.870,4.060) circle (0.025);
+				\fill[black!16] (17.870,4.370) circle (0.025);
+				\fill[black!16] (17.870,4.680) circle (0.025);
+				\fill[black!16] (17.870,4.990) circle (0.025);
+				\fill[black!16] (17.870,5.300) circle (0.025);
+				\fill[black!16] (18.140,2.080) circle (0.025);
+				\fill[black!16] (18.140,2.390) circle (0.025);
+				\fill[black!16] (18.140,2.700) circle (0.025);
+				\fill[black!16] (18.140,3.010) circle (0.025);
+				\fill[black!16] (18.140,3.320) circle (0.025);
+				\fill[black!16] (18.140,4.060) circle (0.025);
+				\fill[black!16] (18.140,4.370) circle (0.025);
+				\fill[black!16] (18.140,4.680) circle (0.025);
+				\fill[black!16] (18.140,4.990) circle (0.025);
+				\fill[black!16] (18.140,5.300) circle (0.025);
+				\node[font=\tiny,text=pizarra] at (18.140,5.64) {63};
+				\fill[black!21] (1.400,6.65) circle (0.025);
+				\fill[black!21] (1.670,6.65) circle (0.025);
+				\fill[black!21] (1.940,6.65) circle (0.025);
+				\fill[black!21] (2.210,6.65) circle (0.025);
+				\fill[black!21] (2.480,6.65) circle (0.025);
+				\fill[black!21] (2.750,6.65) circle (0.025);
+				\fill[black!21] (3.020,6.65) circle (0.025);
+				\fill[black!21] (3.290,6.65) circle (0.025);
+				\fill[black!21] (3.560,6.65) circle (0.025);
+				\fill[black!21] (3.830,6.65) circle (0.025);
+				\fill[black!21] (4.100,6.65) circle (0.025);
+				\fill[black!21] (4.370,6.65) circle (0.025);
+				\fill[black!21] (4.640,6.65) circle (0.025);
+				\fill[black!21] (4.910,6.65) circle (0.025);
+				\fill[black!21] (5.180,6.65) circle (0.025);
+				\fill[black!21] (5.450,6.65) circle (0.025);
+				\fill[black!21] (5.720,6.65) circle (0.025);
+				\fill[black!21] (5.990,6.65) circle (0.025);
+				\fill[black!21] (6.260,6.65) circle (0.025);
+				\fill[black!21] (6.530,6.65) circle (0.025);
+				\fill[black!21] (6.800,6.65) circle (0.025);
+				\fill[black!21] (7.070,6.65) circle (0.025);
+				\fill[black!21] (7.340,6.65) circle (0.025);
+				\fill[black!21] (7.610,6.65) circle (0.025);
+				\fill[black!21] (7.880,6.65) circle (0.025);
+				\fill[black!21] (8.150,6.65) circle (0.025);
+				\fill[black!21] (8.420,6.65) circle (0.025);
+				\fill[black!21] (8.690,6.65) circle (0.025);
+				\fill[black!21] (8.960,6.65) circle (0.025);
+				\fill[black!21] (9.230,6.65) circle (0.025);
+				\fill[black!21] (10.310,6.65) circle (0.025);
+				\fill[black!21] (10.580,6.65) circle (0.025);
+				\fill[black!21] (10.850,6.65) circle (0.025);
+				\fill[black!21] (11.120,6.65) circle (0.025);
+				\fill[black!21] (11.390,6.65) circle (0.025);
+				\fill[black!21] (11.660,6.65) circle (0.025);
+				\fill[black!21] (11.930,6.65) circle (0.025);
+				\fill[black!21] (12.200,6.65) circle (0.025);
+				\fill[black!21] (12.470,6.65) circle (0.025);
+				\fill[black!21] (12.740,6.65) circle (0.025);
+				\fill[black!21] (13.010,6.65) circle (0.025);
+				\fill[black!21] (13.280,6.65) circle (0.025);
+				\fill[black!21] (13.550,6.65) circle (0.025);
+				\fill[black!21] (13.820,6.65) circle (0.025);
+				\fill[black!21] (14.090,6.65) circle (0.025);
+				\fill[black!21] (14.360,6.65) circle (0.025);
+				\fill[black!21] (14.630,6.65) circle (0.025);
+				\fill[black!21] (14.900,6.65) circle (0.025);
+				\fill[black!21] (15.170,6.65) circle (0.025);
+				\fill[black!21] (15.440,6.65) circle (0.025);
+				\fill[black!21] (15.710,6.65) circle (0.025);
+				\fill[black!21] (15.980,6.65) circle (0.025);
+				\fill[black!21] (16.250,6.65) circle (0.025);
+				\fill[black!21] (16.520,6.65) circle (0.025);
+				\fill[black!21] (16.790,6.65) circle (0.025);
+				\fill[black!21] (17.060,6.65) circle (0.025);
+				\fill[black!21] (17.330,6.65) circle (0.025);
+				\fill[black!21] (17.600,6.65) circle (0.025);
+				\fill[black!21] (17.870,6.65) circle (0.025);
+				\fill[black!21] (18.140,6.65) circle (0.025);
+				\draw[white,line width=3pt] (9.76,6.65) -- (10.13,6.65);
+				\fill[black!21] (1.400,6.15) circle (0.025);
+				\fill[black!21] (1.670,6.15) circle (0.025);
+				\fill[black!21] (1.940,6.15) circle (0.025);
+				\fill[black!21] (2.210,6.15) circle (0.025);
+				\fill[black!21] (2.480,6.15) circle (0.025);
+				\fill[black!21] (2.750,6.15) circle (0.025);
+				\fill[black!21] (3.020,6.15) circle (0.025);
+				\fill[black!21] (3.290,6.15) circle (0.025);
+				\fill[black!21] (3.560,6.15) circle (0.025);
+				\fill[black!21] (3.830,6.15) circle (0.025);
+				\fill[black!21] (4.100,6.15) circle (0.025);
+				\fill[black!21] (4.370,6.15) circle (0.025);
+				\fill[black!21] (4.640,6.15) circle (0.025);
+				\fill[black!21] (4.910,6.15) circle (0.025);
+				\fill[black!21] (5.180,6.15) circle (0.025);
+				\fill[black!21] (5.450,6.15) circle (0.025);
+				\fill[black!21] (5.720,6.15) circle (0.025);
+				\fill[black!21] (5.990,6.15) circle (0.025);
+				\fill[black!21] (6.260,6.15) circle (0.025);
+				\fill[black!21] (6.530,6.15) circle (0.025);
+				\fill[black!21] (6.800,6.15) circle (0.025);
+				\fill[black!21] (7.070,6.15) circle (0.025);
+				\fill[black!21] (7.340,6.15) circle (0.025);
+				\fill[black!21] (7.610,6.15) circle (0.025);
+				\fill[black!21] (7.880,6.15) circle (0.025);
+				\fill[black!21] (8.150,6.15) circle (0.025);
+				\fill[black!21] (8.420,6.15) circle (0.025);
+				\fill[black!21] (8.690,6.15) circle (0.025);
+				\fill[black!21] (8.960,6.15) circle (0.025);
+				\fill[black!21] (9.230,6.15) circle (0.025);
+				\fill[black!21] (10.310,6.15) circle (0.025);
+				\fill[black!21] (10.580,6.15) circle (0.025);
+				\fill[black!21] (10.850,6.15) circle (0.025);
+				\fill[black!21] (11.120,6.15) circle (0.025);
+				\fill[black!21] (11.390,6.15) circle (0.025);
+				\fill[black!21] (11.660,6.15) circle (0.025);
+				\fill[black!21] (11.930,6.15) circle (0.025);
+				\fill[black!21] (12.200,6.15) circle (0.025);
+				\fill[black!21] (12.470,6.15) circle (0.025);
+				\fill[black!21] (12.740,6.15) circle (0.025);
+				\fill[black!21] (13.010,6.15) circle (0.025);
+				\fill[black!21] (13.280,6.15) circle (0.025);
+				\fill[black!21] (13.550,6.15) circle (0.025);
+				\fill[black!21] (13.820,6.15) circle (0.025);
+				\fill[black!21] (14.090,6.15) circle (0.025);
+				\fill[black!21] (14.360,6.15) circle (0.025);
+				\fill[black!21] (14.630,6.15) circle (0.025);
+				\fill[black!21] (14.900,6.15) circle (0.025);
+				\fill[black!21] (15.170,6.15) circle (0.025);
+				\fill[black!21] (15.440,6.15) circle (0.025);
+				\fill[black!21] (15.710,6.15) circle (0.025);
+				\fill[black!21] (15.980,6.15) circle (0.025);
+				\fill[black!21] (16.250,6.15) circle (0.025);
+				\fill[black!21] (16.520,6.15) circle (0.025);
+				\fill[black!21] (16.790,6.15) circle (0.025);
+				\fill[black!21] (17.060,6.15) circle (0.025);
+				\fill[black!21] (17.330,6.15) circle (0.025);
+				\fill[black!21] (17.600,6.15) circle (0.025);
+				\fill[black!21] (17.870,6.15) circle (0.025);
+				\fill[black!21] (18.140,6.15) circle (0.025);
+				\draw[white,line width=3pt] (9.76,6.15) -- (10.13,6.15);
+				\fill[black!21] (1.400,1.17) circle (0.025);
+				\fill[black!21] (1.670,1.17) circle (0.025);
+				\fill[black!21] (1.940,1.17) circle (0.025);
+				\fill[black!21] (2.210,1.17) circle (0.025);
+				\fill[black!21] (2.480,1.17) circle (0.025);
+				\fill[black!21] (2.750,1.17) circle (0.025);
+				\fill[black!21] (3.020,1.17) circle (0.025);
+				\fill[black!21] (3.290,1.17) circle (0.025);
+				\fill[black!21] (3.560,1.17) circle (0.025);
+				\fill[black!21] (3.830,1.17) circle (0.025);
+				\fill[black!21] (4.100,1.17) circle (0.025);
+				\fill[black!21] (4.370,1.17) circle (0.025);
+				\fill[black!21] (4.640,1.17) circle (0.025);
+				\fill[black!21] (4.910,1.17) circle (0.025);
+				\fill[black!21] (5.180,1.17) circle (0.025);
+				\fill[black!21] (5.450,1.17) circle (0.025);
+				\fill[black!21] (5.720,1.17) circle (0.025);
+				\fill[black!21] (5.990,1.17) circle (0.025);
+				\fill[black!21] (6.260,1.17) circle (0.025);
+				\fill[black!21] (6.530,1.17) circle (0.025);
+				\fill[black!21] (6.800,1.17) circle (0.025);
+				\fill[black!21] (7.070,1.17) circle (0.025);
+				\fill[black!21] (7.340,1.17) circle (0.025);
+				\fill[black!21] (7.610,1.17) circle (0.025);
+				\fill[black!21] (7.880,1.17) circle (0.025);
+				\fill[black!21] (8.150,1.17) circle (0.025);
+				\fill[black!21] (8.420,1.17) circle (0.025);
+				\fill[black!21] (8.690,1.17) circle (0.025);
+				\fill[black!21] (8.960,1.17) circle (0.025);
+				\fill[black!21] (9.230,1.17) circle (0.025);
+				\fill[black!21] (10.310,1.17) circle (0.025);
+				\fill[black!21] (10.580,1.17) circle (0.025);
+				\fill[black!21] (10.850,1.17) circle (0.025);
+				\fill[black!21] (11.120,1.17) circle (0.025);
+				\fill[black!21] (11.390,1.17) circle (0.025);
+				\fill[black!21] (11.660,1.17) circle (0.025);
+				\fill[black!21] (11.930,1.17) circle (0.025);
+				\fill[black!21] (12.200,1.17) circle (0.025);
+				\fill[black!21] (12.470,1.17) circle (0.025);
+				\fill[black!21] (12.740,1.17) circle (0.025);
+				\fill[black!21] (13.010,1.17) circle (0.025);
+				\fill[black!21] (13.280,1.17) circle (0.025);
+				\fill[black!21] (13.550,1.17) circle (0.025);
+				\fill[black!21] (13.820,1.17) circle (0.025);
+				\fill[black!21] (14.090,1.17) circle (0.025);
+				\fill[black!21] (14.360,1.17) circle (0.025);
+				\fill[black!21] (14.630,1.17) circle (0.025);
+				\fill[black!21] (14.900,1.17) circle (0.025);
+				\fill[black!21] (15.170,1.17) circle (0.025);
+				\fill[black!21] (15.440,1.17) circle (0.025);
+				\fill[black!21] (15.710,1.17) circle (0.025);
+				\fill[black!21] (15.980,1.17) circle (0.025);
+				\fill[black!21] (16.250,1.17) circle (0.025);
+				\fill[black!21] (16.520,1.17) circle (0.025);
+				\fill[black!21] (16.790,1.17) circle (0.025);
+				\fill[black!21] (17.060,1.17) circle (0.025);
+				\fill[black!21] (17.330,1.17) circle (0.025);
+				\fill[black!21] (17.600,1.17) circle (0.025);
+				\fill[black!21] (17.870,1.17) circle (0.025);
+				\fill[black!21] (18.140,1.17) circle (0.025);
+				\draw[white,line width=3pt] (9.76,1.17) -- (10.13,1.17);
+				\fill[black!21] (1.400,0.66) circle (0.025);
+				\fill[black!21] (1.670,0.66) circle (0.025);
+				\fill[black!21] (1.940,0.66) circle (0.025);
+				\fill[black!21] (2.210,0.66) circle (0.025);
+				\fill[black!21] (2.480,0.66) circle (0.025);
+				\fill[black!21] (2.750,0.66) circle (0.025);
+				\fill[black!21] (3.020,0.66) circle (0.025);
+				\fill[black!21] (3.290,0.66) circle (0.025);
+				\fill[black!21] (3.560,0.66) circle (0.025);
+				\fill[black!21] (3.830,0.66) circle (0.025);
+				\fill[black!21] (4.100,0.66) circle (0.025);
+				\fill[black!21] (4.370,0.66) circle (0.025);
+				\fill[black!21] (4.640,0.66) circle (0.025);
+				\fill[black!21] (4.910,0.66) circle (0.025);
+				\fill[black!21] (5.180,0.66) circle (0.025);
+				\fill[black!21] (5.450,0.66) circle (0.025);
+				\fill[black!21] (5.720,0.66) circle (0.025);
+				\fill[black!21] (5.990,0.66) circle (0.025);
+				\fill[black!21] (6.260,0.66) circle (0.025);
+				\fill[black!21] (6.530,0.66) circle (0.025);
+				\fill[black!21] (6.800,0.66) circle (0.025);
+				\fill[black!21] (7.070,0.66) circle (0.025);
+				\fill[black!21] (7.340,0.66) circle (0.025);
+				\fill[black!21] (7.610,0.66) circle (0.025);
+				\fill[black!21] (7.880,0.66) circle (0.025);
+				\fill[black!21] (8.150,0.66) circle (0.025);
+				\fill[black!21] (8.420,0.66) circle (0.025);
+				\fill[black!21] (8.690,0.66) circle (0.025);
+				\fill[black!21] (8.960,0.66) circle (0.025);
+				\fill[black!21] (9.230,0.66) circle (0.025);
+				\fill[black!21] (10.310,0.66) circle (0.025);
+				\fill[black!21] (10.580,0.66) circle (0.025);
+				\fill[black!21] (10.850,0.66) circle (0.025);
+				\fill[black!21] (11.120,0.66) circle (0.025);
+				\fill[black!21] (11.390,0.66) circle (0.025);
+				\fill[black!21] (11.660,0.66) circle (0.025);
+				\fill[black!21] (11.930,0.66) circle (0.025);
+				\fill[black!21] (12.200,0.66) circle (0.025);
+				\fill[black!21] (12.470,0.66) circle (0.025);
+				\fill[black!21] (12.740,0.66) circle (0.025);
+				\fill[black!21] (13.010,0.66) circle (0.025);
+				\fill[black!21] (13.280,0.66) circle (0.025);
+				\fill[black!21] (13.550,0.66) circle (0.025);
+				\fill[black!21] (13.820,0.66) circle (0.025);
+				\fill[black!21] (14.090,0.66) circle (0.025);
+				\fill[black!21] (14.360,0.66) circle (0.025);
+				\fill[black!21] (14.630,0.66) circle (0.025);
+				\fill[black!21] (14.900,0.66) circle (0.025);
+				\fill[black!21] (15.170,0.66) circle (0.025);
+				\fill[black!21] (15.440,0.66) circle (0.025);
+				\fill[black!21] (15.710,0.66) circle (0.025);
+				\fill[black!21] (15.980,0.66) circle (0.025);
+				\fill[black!21] (16.250,0.66) circle (0.025);
+				\fill[black!21] (16.520,0.66) circle (0.025);
+				\fill[black!21] (16.790,0.66) circle (0.025);
+				\fill[black!21] (17.060,0.66) circle (0.025);
+				\fill[black!21] (17.330,0.66) circle (0.025);
+				\fill[black!21] (17.600,0.66) circle (0.025);
+				\fill[black!21] (17.870,0.66) circle (0.025);
+				\fill[black!21] (18.140,0.66) circle (0.025);
+				\draw[white,line width=3pt] (9.76,0.66) -- (10.13,0.66);
+				\node[font=\scriptsize\bfseries,text=rojo!80!black,anchor=east] at (0.88,6.65) {T+L};
+				\node[font=\scriptsize\bfseries,text=azul!80!black,anchor=east] at (0.88,6.15) {T-L};
+				\node[font=\scriptsize\bfseries,text=rojo!80!black,anchor=east] at (0.88,1.17) {B+L};
+				\node[font=\scriptsize\bfseries,text=azul!80!black,anchor=east] at (0.88,0.66) {B-L};
+				\node[font=\scriptsize\bfseries,text=rojo!80!black,anchor=west] at (19.15,6.65) {T+R};
+				\node[font=\scriptsize\bfseries,text=azul!80!black,anchor=west] at (19.15,6.15) {T-R};
+				\node[font=\scriptsize\bfseries,text=rojo!80!black,anchor=west] at (19.15,1.17) {B+R};
+				\node[font=\scriptsize\bfseries,text=azul!80!black,anchor=west] at (19.15,0.66) {B-R};
+				\draw[rounded corners=1.8pt,fill=white,draw=navy,line width=0.8pt] (2.080,3.08) rectangle (2.880,4.30);
+				\draw[fill=azul!35,draw=navy!70] (2.480,3.69) circle (0.22);
+				\node[font=\tiny\bfseries,text=navy] at (2.480,4.48) {MARCHA};
+				\fill[navy] (2.210,3.32) circle (0.045);
+				\fill[navy] (2.210,4.06) circle (0.045);
+				\fill[navy] (2.750,3.32) circle (0.045);
+				\fill[navy] (2.750,4.06) circle (0.045);
+				\draw[rounded corners=1.8pt,fill=white,draw=navy,line width=0.8pt] (3.700,3.08) rectangle (4.500,4.30);
+				\draw[fill=rojo!35,draw=navy!70] (4.100,3.69) circle (0.22);
+				\node[font=\tiny\bfseries,text=navy] at (4.100,4.48) {PARO};
+				\fill[navy] (3.830,3.32) circle (0.045);
+				\fill[navy] (3.830,4.06) circle (0.045);
+				\fill[navy] (4.370,3.32) circle (0.045);
+				\fill[navy] (4.370,4.06) circle (0.045);
+				\draw[rounded corners=1.2pt,fill=azul!12,draw=navy,line width=0.8pt] (5.860,3.22) rectangle (6.930,4.17);
+				\draw[fill=white,draw=azul] (5.890,3.58) rectangle (6.090,3.83);
+				\node[font=\tiny,text=navy] at (5.990,4.29) {A};
+				\draw[fill=white,draw=azul] (6.160,3.58) rectangle (6.360,3.83);
+				\node[font=\tiny,text=navy] at (6.260,4.29) {B};
+				\draw[fill=white,draw=azul] (6.430,3.58) rectangle (6.630,3.83);
+				\node[font=\tiny,text=navy] at (6.530,4.29) {F};
+				\draw[fill=white,draw=azul] (6.700,3.58) rectangle (6.900,3.83);
+				\node[font=\tiny,text=navy] at (6.800,4.29) {4};
+				\fill[navy] (5.990,3.32) circle (0.042);
+				\fill[navy] (5.990,4.06) circle (0.042);
+				\fill[navy] (6.260,3.32) circle (0.042);
+				\fill[navy] (6.260,4.06) circle (0.042);
+				\fill[navy] (6.530,3.32) circle (0.042);
+				\fill[navy] (6.530,4.06) circle (0.042);
+				\fill[navy] (6.800,3.32) circle (0.042);
+				\fill[navy] (6.800,4.06) circle (0.042);
+				\node[font=\tiny\bfseries] at (6.395,4.59) {SW1 DIP};
+				\draw[rounded corners=1.5pt,fill=black!84,draw=black,line width=0.8pt] (8.530,3.42) rectangle (10.470,3.96);
+				\draw[white,line width=0.7pt] (8.530,3.78) arc (90:-90:0.10);
+				\node[font=\scriptsize\bfseries,text=white] at (9.500,3.69) {74HC08};
+				\fill[navy] (8.690,3.32) circle (0.052);
+				\fill[navy] (8.690,4.06) circle (0.052);
+				\fill[navy] (8.960,3.32) circle (0.052);
+				\fill[navy] (8.960,4.06) circle (0.052);
+				\fill[navy] (9.230,3.32) circle (0.052);
+				\fill[navy] (9.230,4.06) circle (0.052);
+				\fill[navy] (9.500,3.32) circle (0.052);
+				\fill[navy] (9.500,4.06) circle (0.052);
+				\fill[navy] (9.770,3.32) circle (0.052);
+				\fill[navy] (9.770,4.06) circle (0.052);
+				\fill[navy] (10.040,3.32) circle (0.052);
+				\fill[navy] (10.040,4.06) circle (0.052);
+				\fill[navy] (10.310,3.32) circle (0.052);
+				\fill[navy] (10.310,4.06) circle (0.052);
+				\node[font=\tiny\bfseries,text=navy] at (8.420,3.69) {U1};
+				\node[font=\tiny,text=navy,anchor=east] at (8.530,3.28) {1};
+				\node[font=\tiny,text=navy,anchor=east] at (8.530,4.13) {14};
+				\draw[fill=ambar!20,draw=ambar!80!black,thick] (8.690,4.37) -- (8.960,4.52) -- (9.230,4.37);
+				\node[font=\tiny,text=navy] at (8.960,4.79) {C1};
+				\draw[line width=0.45pt,black!60] (2.210,5.32) -- (2.210,5.55);
+				\draw[fill=ambar!20,draw=pizarra,line width=0.6pt] (2.152,5.55) rectangle (2.268,5.94);
+				\draw[line width=0.45pt,black!60] (2.210,5.94) -- (2.210,6.15);
+				\draw[line width=0.45pt,black!60] (3.830,5.32) -- (3.830,5.55);
+				\draw[fill=ambar!20,draw=pizarra,line width=0.6pt] (3.772,5.55) rectangle (3.888,5.94);
+				\draw[line width=0.5pt,rojo!75] (3.830,5.94) -- (3.830,6.65);
+                \node[font=\tiny,text=navy,anchor=south] at (3.830,6.78) {R2 a T+L};
+				\draw[line width=0.45pt,black!60] (5.990,5.32) -- (5.990,5.55);
+				\draw[fill=ambar!20,draw=pizarra,line width=0.6pt] (5.932,5.55) rectangle (6.048,5.94);
+				\draw[line width=0.45pt,black!60] (5.990,5.94) -- (5.990,6.15);
+				\draw[line width=0.45pt,black!60] (6.260,5.32) -- (6.260,5.55);
+				\draw[fill=ambar!20,draw=pizarra,line width=0.6pt] (6.202,5.55) rectangle (6.318,5.94);
+				\draw[line width=0.45pt,black!60] (6.260,5.94) -- (6.260,6.15);
+				\draw[line width=0.45pt,black!60] (6.530,5.32) -- (6.530,5.55);
+				\draw[fill=ambar!20,draw=pizarra,line width=0.6pt] (6.472,5.55) rectangle (6.588,5.94);
+				\draw[line width=0.45pt,black!60] (6.530,5.94) -- (6.530,6.15);
+				\draw[line width=0.5pt] (8.690,2.06) -- (8.690,1.91);
+				\draw[fill=ambar!20,draw=pizarra,line width=0.6pt] (8.632,1.91) rectangle (8.748,1.53);
+				\draw[line width=0.5pt] (8.690,1.53) -- (8.690,0.66);
+				\draw[line width=0.5pt] (9.500,2.06) -- (9.500,1.91);
+				\draw[fill=ambar!20,draw=pizarra,line width=0.6pt] (9.442,1.91) rectangle (9.558,1.53);
+				\draw[line width=0.5pt] (9.500,1.53) -- (9.500,0.66);
+				\draw[line width=0.7pt,pizarra] (13.550,2.08) -- (14.360,2.08);
+				\draw[fill=ambar!19,draw=pizarra,line width=0.55pt] (13.705,1.95) rectangle (14.205,2.19);
+				\draw[line width=0.7pt,pizarra] (13.820,2.08) -- (15.440,2.08);
+				\draw[fill=ambar!19,draw=pizarra,line width=0.55pt] (14.380,1.95) rectangle (14.880,2.19);
+				\draw[line width=0.7pt,pizarra] (14.090,2.08) -- (16.790,2.08);
+				\draw[fill=ambar!19,draw=pizarra,line width=0.55pt] (15.190,1.95) rectangle (15.690,2.19);
+				\draw[fill=rojo!38,draw=pizarra,thick] (14.495,2.65) circle (0.19);
+				\node[font=\tiny\bfseries,text=navy] at (14.495,2.29) {D1};
+				\fill[navy] (14.360,3.32) circle (0.048);
+				\fill[navy] (14.630,3.32) circle (0.048);
+				\draw[fill=verde!38,draw=pizarra,thick] (15.575,2.65) circle (0.19);
+				\node[font=\tiny\bfseries,text=navy] at (15.575,2.29) {D2};
+				\fill[navy] (15.440,3.32) circle (0.048);
+				\fill[navy] (15.710,3.32) circle (0.048);
+				\draw[fill=orange!38,draw=pizarra,thick] (16.925,2.65) circle (0.19);
+				\node[font=\tiny\bfseries,text=navy] at (16.925,2.29) {D3};
+				\fill[navy] (16.790,3.32) circle (0.048);
+				\fill[navy] (17.060,3.32) circle (0.048);
+				\draw[draw=azul!90!black,fill=azul!40,line width=0.55pt] (2.210,4.060) circle (0.068);
+				\draw[draw=violet!90!black,fill=violet!40,line width=0.55pt] (3.830,4.060) circle (0.068);
+				\draw[draw=azul!90!black,fill=azul!40,line width=0.55pt] (5.990,4.060) circle (0.068);
+				\draw[draw=azul!90!black,fill=azul!40,line width=0.55pt] (6.260,4.060) circle (0.068);
+				\draw[draw=azul!90!black,fill=azul!40,line width=0.55pt] (6.530,4.060) circle (0.068);
+				\draw[draw=azul!90!black,fill=azul!40,line width=0.55pt] (8.690,3.320) circle (0.068);
+				\draw[draw=violet!90!black,fill=violet!40,line width=0.55pt] (8.960,3.320) circle (0.068);
+				\draw[draw=ambar!90!black,fill=ambar!40,line width=0.55pt] (9.230,3.320) circle (0.068);
+				\draw[draw=azul!90!black,fill=azul!40,line width=0.55pt] (9.500,3.320) circle (0.068);
+				\draw[draw=violet!90!black,fill=violet!40,line width=0.55pt] (9.770,3.320) circle (0.068);
+				\draw[draw=ambar!90!black,fill=ambar!40,line width=0.55pt] (10.040,3.320) circle (0.068);
+				\draw[draw=black!90!black,fill=black!40,line width=0.55pt] (10.310,3.320) circle (0.068);
+				\draw[draw=rojo!90!black,fill=rojo!40,line width=0.55pt] (8.690,4.060) circle (0.068);
+				\draw[draw=black!90!black,fill=black!40,line width=0.55pt] (8.960,4.060) circle (0.068);
+				\draw[draw=black!90!black,fill=black!40,line width=0.55pt] (9.230,4.060) circle (0.068);
+				\draw[draw=black!90!black,fill=black!40,line width=0.55pt] (9.770,4.060) circle (0.068);
+				\draw[draw=black!90!black,fill=black!40,line width=0.55pt] (10.040,4.060) circle (0.068);
+				\draw[draw=azul!90!black,fill=azul!40,line width=0.55pt] (13.550,2.080) circle (0.068);
+				\draw[draw=azul!90!black,fill=azul!40,line width=0.55pt] (13.820,2.080) circle (0.068);
+				\draw[draw=azul!90!black,fill=azul!40,line width=0.55pt] (14.090,2.080) circle (0.068);
+				\draw[rounded corners=2pt,draw=navy,fill=navy!6,thick] (7.5,7.22) rectangle (13.0,8.26);
+				\node[font=\bfseries\normalsize,text=navy] at (10.25,7.92) {ESP32 DevKitC V4};
+				\node[font=\scriptsize,text=pizarra] at (10.25,7.51) {Módulo externo · conexión por jumpers};
+				\draw[fill=black!13,draw=pizarra] (7.04,7.64) rectangle (7.5,8.01);
+				\node[font=\scriptsize,text=navy] at (6.65,7.80) {USB};
+				\node[font=\small\bfseries,text=navy,anchor=west] at (0.9,7.84) {Figura de implantación};
+				\node[font=\scriptsize,text=pizarra,anchor=west] at (0.9,7.47) {BB830 · 63 filas × 10 bornes};
+				\node[font=\scriptsize,text=pizarra,anchor=west] at (14.05,7.8) {Resistencias: R1–R7 = 10 k$\Omega$};
+				\node[font=\scriptsize,text=pizarra,anchor=west] at (14.05,7.45) {R8–R10 = 330 $\Omega$};
+		\end{tikzpicture}}
+		
+		\par\vspace{0.65cm}
+		\noindent\begin{minipage}{0.98\linewidth}
+			\small
+			\color{navy}\rule{\linewidth}{0.75pt}\par\vspace{0.25cm}
+			\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}X@{}}
+				\textbf{01 · Entradas} & \textbf{02 · Compuertas} & \textbf{03 · Indicadores}\\[3pt]
+				S1 MARCHA, S2 PARO y SW1 DIP, en el extremo izquierdo. R2 de PARO se conecta a 3V3; las demás entradas, a GND. & U1 74HC08 cruza el canal central, filas 28--34. C1 de \SI{100}{nF} desacopla los pines 14 y 7. & D1 alarma, D2 KM1 y D3 KM2, a la derecha. Cada LED incorpora una resistencia serie de \SI{330}{\ohm}.\\
+			\end{tabularx}
+			\par\vspace{0.50cm}
+			\par\color{navy}\rule{\linewidth}{0.75pt}
+		\end{minipage}
+		\caption{Plano de implantación BB830 con referencias de componentes y orificios. S1: MARCHA; S2: PARO; SW1: DIP; U1: 74HC08; D1--D3: indicadores. Este dibujo es una guía de ubicación, no muestra todos los jumpers. Cablee según el esquema y la tabla de conexiones del Anexo~\ref{sec:conexiones}; verifique los rieles interrumpidos.}
+		\label{fig:montaje_tikz}
+	\end{figure}
+\end{landscape}
+
+
+\section*{Cierre}
+\begin{evidencia}
+\begin{enumerate}[leftmargin=*]
+  \item Una foto del montaje final con el LED verde encendido.
+  \item Las cuatro tablas de esta guía llenas.
+  \item Respuestas breves (2 o 3 líneas cada una):
+  \begin{itemize}
+    \item ¿Por qué el LED lleva \SI{330}{\ohm} y no otro valor?
+    \item ¿Qué es una entrada flotante y cómo la evitó en este banco?
+    \item ¿Por qué el PARO pasa por la compuerta y no solo por el programa?
+  \end{itemize}
+\end{enumerate}
+\end{evidencia}
+
+
+
+% ===================================================================
+\FloatBarrier
+\appendix
+\section{Tabla completa de conexiones}\label{sec:conexiones}
+
+Esta tabla complementa los esquemas y evita confundir el \emph{plano de ubicación} de la protoboard con un plano de cableado. Cada conexión se realiza con \textbf{USB desconectado}. Los rieles positivo y negativo son comunes a todo el montaje.
+
+\begin{center}\small\renewcommand{\arraystretch}{1.22}
+\begin{longtable}{@{}p{3.2cm}p{5.1cm}p{6.1cm}@{}}
+\toprule\textbf{Elemento/señal} & \textbf{Unir estos terminales} & \textbf{Comprobación / función}\\\midrule\endhead
+Alimentación & ESP32 \sig{3V3} a riel positivo; ESP32 \sig{GND} a riel negativo & Solo 3,3 V; verificar continuidad de rieles\\
+S1 MARCHA & un lado a 3V3; el otro a GPIO 14 y resistencia R1 de 10 k$\Omega$ a GND & Reposo: 0; pulsado: 1\\
+S2 PARO & un lado a GND; el otro a GPIO 13, 74HC08 pines 2 y 5 y resistencia R2 de 10 k$\Omega$ a 3V3 & Reposo: 1; pulsado: 0 (PARO\_OK)\\
+SW1:A (red apta) & un lado a 3V3; el otro a GPIO 32 y R3 de 10 k$\Omega$ a GND & ON: 1; OFF: 0\\
+SW1:B (planta disponible) & un lado a 3V3; el otro a GPIO 33 y R4 de 10 k$\Omega$ a GND & ON: 1; OFF: 0\\
+SW1:C (FALLA) & un lado a 3V3; el otro a GPIO 25 y R5 de 10 k$\Omega$ a GND & ON: 1; OFF: 0\\
+74HC08 alimentación & pin 14 a 3V3; pin 7 a GND; C1 = 100 nF entre pines 14 y 7 & C1 junto a U1, no polarizado\\
+CMD1 & ESP32 GPIO 23 a U1 pin 1 y R6 de 10 k$\Omega$ a GND & Entrada primera AND: evita orden indefinida al arranque\\
+CMD2 & ESP32 GPIO 22 a U1 pin 4 y R7 de 10 k$\Omega$ a GND & Entrada segunda AND\\
+KM1 / D2 verde & U1 pin 3 $\rightarrow$ resistencia 330 $\Omega$ $\rightarrow$ ánodo LED verde; cátodo a GND & Salida primera AND\\
+KM2 / D3 naranja & U1 pin 6 $\rightarrow$ resistencia 330 $\Omega$ $\rightarrow$ ánodo LED naranja; cátodo a GND & Salida segunda AND\\
+Alarma / D1 rojo & ESP32 GPIO 18 $\rightarrow$ resistencia 330 $\Omega$ $\rightarrow$ ánodo LED rojo; cátodo a GND & Salida directa del ESP32\\
+Puertas no usadas & U1 pines 9, 10, 12 y 13 a GND; pines 8 y 11 libres & No dejar entradas del chip flotantes\\
+\bottomrule
+\end{longtable}
+\end{center}
+
+\begin{seguridad}
+\textbf{Antes de conectar el USB:} revise orientación de U1 (muesca y pin 1), polaridad de los tres LEDs, continuidad de GND, valores de resistencias y ausencia de cortos entre los rieles. La ubicación física de resistencias/LEDs depende de la protoboard: respete las \textbf{redes eléctricas} de la tabla, no solamente las posiciones de la lámina.
+\end{seguridad}
+
+\section{Programa de referencia del ESP32}\label{sec:programa}
+
+El siguiente programa es una \textbf{implementación didáctica de referencia} desarrollada para que esta guía sea autocontenida. Si el instructor dispone de una versión oficial del curso, debe comprobar que sus mensajes y temporizaciones coincidan antes de utilizarla. Copie el contenido a un archivo llamado \texttt{banco\_simple\_esp32.ino}, cárguelo al ESP32 y configure el Monitor serie a 115200 baudios.
+
+\begin{lstlisting}[style=ino,caption={Programa autónomo de referencia para las cuatro prácticas},label={lst:arduino}]
+/*
+  Banco basico ATSEP: ESP32 + 74HC08 (referencia didactica).
+  Solo LEDs a 3,3 V. Nunca conectar cargas o tensiones de red.
+  Monitor serie: 115200 baudios; comandos 1, 2, 3, 4, b, k.
+*/
+const uint8_t LED_ALARMA = 18;
+const uint8_t PIN_MARCHA = 14;
+const uint8_t PIN_PARO = 13;    // 1 = PARO_OK, 0 = pulsado
+const uint8_t PIN_A = 32;       // red apta
+const uint8_t PIN_B = 33;       // planta disponible
+const uint8_t PIN_FALLA = 25;
+const uint8_t CMD1 = 23;       // a 74HC08 pin 1
+const uint8_t CMD2 = 22;       // a 74HC08 pin 4
+
+const unsigned long CONF_FALLA = 3000UL;
+const unsigned long TIEMPO_MUERTO = 2000UL;
+const unsigned long CONF_RETORNO = 5000UL;
+
+enum Etapa { RED, ESPERA_FALLA, MUERTO_PLANTA,
+             PLANTA, ESPERA_RETORNO, MUERTO_RED,
+             SIN_FUENTE, DETENIDO };
+Etapa etapa = DETENIDO;
+unsigned long inicioEtapa = 0;
+int practica = 0;
+bool retenido = false;
+bool anteriorMarcha = false;
+bool trabado = false;           // prueba b: CMD1 forzado alto
+bool fallaDoble = false;        // prueba k: CMD1 y CMD2 altos
+int anteriorEntradas = -1;
+
+bool paroOK() { return digitalRead(PIN_PARO) == HIGH; }
+bool marcha() { return digitalRead(PIN_MARCHA) == HIGH; }
+bool redApta() { return digitalRead(PIN_A) == HIGH; }
+bool plantaLista() { return digitalRead(PIN_B) == HIGH; }
+bool hayFalla() { return digitalRead(PIN_FALLA) == HIGH; }
+
+void salidas(bool km1, bool km2, bool alarma) {
+  // La compuerta 74HC08 inhibe los LEDs KM1/KM2 al pulsar PARO.
+  digitalWrite(CMD1, km1 ? HIGH : LOW);
+  digitalWrite(CMD2, km2 ? HIGH : LOW);
+  digitalWrite(LED_ALARMA, alarma ? HIGH : LOW);
+}
+
+void cambiar(Etapa nueva, unsigned long ahora, const char* mensaje) {
+  etapa = nueva;
+  inicioEtapa = ahora;
+  Serial.println(mensaje);
+}
+
+void seleccionar(int p, unsigned long ahora) {
+  practica = p;
+  retenido = false;
+  trabado = false;
+  fallaDoble = false;
+  anteriorMarcha = marcha();
+  anteriorEntradas = -1;
+  salidas(false, false, false);
+  Serial.printf("Practica %d seleccionada.\n", p);
+  if (p == 4) {
+    if (!paroOK()) cambiar(DETENIDO, ahora, "PARO activo: libere y escriba 4.");
+    else if (redApta()) cambiar(RED, ahora, "RED: KM1 habilitado.");
+    else cambiar(SIN_FUENTE, ahora, "Sin red: esperando fuente.");
+  }
+}
+
+void procesarComandos(unsigned long ahora) {
+  while (Serial.available() > 0) {
+    char c = (char)Serial.read();
+    if (c >= '1' && c <= '4') seleccionar(c - '0', ahora);
+    else if (c == 'b' && practica == 3) {
+      trabado = !trabado;
+      Serial.println(trabado ? "Prueba b: CMD1 forzado a 1."
+                              : "Prueba b finalizada.");
+    } else if (c == 'k' && practica == 4) {
+      fallaDoble = !fallaDoble;
+      Serial.println(fallaDoble ? "Prueba k: ambas ordenes a 1."
+                                 : "Prueba k terminada: control normal.");
+    }
+  }
+}
+
+void reportarEntradas() {
+  int bits = (marcha() ? 1 : 0) | (paroOK() ? 2 : 0)
+            | (redApta() ? 4 : 0) | (plantaLista() ? 8 : 0)
+            | (hayFalla() ? 16 : 0);
+  if (bits != anteriorEntradas) {
+    anteriorEntradas = bits;
+    Serial.printf("MARCHA=%d PARO_OK=%d A=%d B=%d FALLA=%d\n",
+      marcha(), paroOK(), redApta(), plantaLista(), hayFalla());
+  }
+}
+
+void controlarTransferencia(unsigned long ahora) {
+  if (!paroOK()) {
+    if (etapa != DETENIDO)
+      cambiar(DETENIDO, ahora, "PARO: control detenido; reinicie con 4.");
+    return;
+  }
+  switch (etapa) {
+    case RED:
+      if (!redApta()) cambiar(ESPERA_FALLA, ahora, "Fallo de red: contando 3 s.");
+      break;
+    case ESPERA_FALLA:
+      if (redApta()) cambiar(RED, ahora, "Microcorte: sigue KM1.");
+      else if (ahora - inicioEtapa >= CONF_FALLA)
+        cambiar(MUERTO_PLANTA, ahora, "Red confirmada perdida: KM1 abierto.");
+      break;
+    case MUERTO_PLANTA:
+      if (ahora - inicioEtapa >= TIEMPO_MUERTO) {
+        if (redApta()) cambiar(RED, ahora, "Red disponible: KM1.");
+        else if (plantaLista()) cambiar(PLANTA, ahora, "Planta: KM2 habilitado.");
+        else cambiar(SIN_FUENTE, ahora, "Ninguna fuente disponible.");
+      }
+      break;
+    case PLANTA:
+      if (!plantaLista()) cambiar(SIN_FUENTE, ahora, "Planta no disponible: KM2 abierto.");
+      else if (redApta()) cambiar(ESPERA_RETORNO, ahora, "Red retorno: contando 5 s.");
+      break;
+    case ESPERA_RETORNO:
+      if (!redApta()) cambiar(PLANTA, ahora, "Retorno inestable: sigue KM2.");
+      else if (!plantaLista()) cambiar(SIN_FUENTE, ahora, "Planta perdida: KM2 abierto.");
+      else if (ahora - inicioEtapa >= CONF_RETORNO)
+        cambiar(MUERTO_RED, ahora, "Retorno confirmado: KM2 abierto.");
+      break;
+    case MUERTO_RED:
+      if (ahora - inicioEtapa >= TIEMPO_MUERTO) {
+        if (redApta()) cambiar(RED, ahora, "Red: KM1 habilitado.");
+        else if (plantaLista()) cambiar(PLANTA, ahora, "Sin red: vuelve KM2.");
+        else cambiar(SIN_FUENTE, ahora, "Sin fuentes.");
+      }
+      break;
+    case SIN_FUENTE:
+      if (redApta()) cambiar(RED, ahora, "Red disponible: KM1.");
+      else if (plantaLista()) cambiar(MUERTO_PLANTA, ahora, "Planta lista: espera 2 s.");
+      break;
+    case DETENIDO:
+      break; // solo se rearma enviando 4
+  }
+}
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(PIN_MARCHA, INPUT);     // resistencias externas de 10 kOhm
+  pinMode(PIN_PARO, INPUT);
+  pinMode(PIN_A, INPUT);
+  pinMode(PIN_B, INPUT);
+  pinMode(PIN_FALLA, INPUT);
+  pinMode(LED_ALARMA, OUTPUT);
+  pinMode(CMD1, OUTPUT);
+  pinMode(CMD2, OUTPUT);
+  salidas(false, false, false);
+  Serial.println("Banco básico ATSEP. Escriba 1, 2, 3 o 4.");
+}
+
+void loop() {
+  unsigned long ahora = millis();
+  procesarComandos(ahora);
+  bool m = marcha();
+  bool ok = paroOK();
+  if (practica == 1) salidas(false, false, true);
+  else if (practica == 2) {
+    reportarEntradas();
+    salidas(false, false, m);
+  } else if (practica == 3) {
+    if (!ok || hayFalla()) retenido = false;
+    else if (m && !anteriorMarcha) retenido = true;
+    salidas(trabado || retenido, false, hayFalla());
+  } else if (practica == 4) {
+    controlarTransferencia(ahora);
+    bool km1 = etapa == RED || etapa == ESPERA_FALLA;
+    bool km2 = etapa == PLANTA || etapa == ESPERA_RETORNO;
+    if (fallaDoble) { km1 = true; km2 = true; }
+    salidas(km1, km2, !redApta() || hayFalla());
+  } else salidas(false, false, false);
+  anteriorMarcha = m;
+  delay(10);
+}
+\end{lstlisting}
+
+\end{document}
