@@ -12,7 +12,7 @@
 ![Arduino](https://img.shields.io/badge/firmware-Arduino-2563eb?style=flat-square&logo=arduino)
 ![Duración](https://img.shields.io/badge/pr%C3%A1ctica-3%20horas-475569?style=flat-square)
 
-[**📘 Guía PDF**](guia/guia_laboratorio_ESP32_ATSEP.pdf) · [**⬇️ Descargar .ino**](firmware/banco_simple_esp32.ino) · [**🎓 Diapositivas PDF**](presentaciones/controles_electricos_y_logica_cableada.pdf) · [**🧪 Simulador**](https://github.com/marcoteran/atsep-controllogyc) · [**🌐 Portal de la clase**](docs/index.html)
+[**📘 Guía PDF**](guia/guia_laboratorio_ESP32_ATSEP.pdf) · [**⬇️ Descargar .ino**](firmware/banco_simple_esp32.ino) · [**🎓 Diapositivas PDF**](presentaciones/marcoteran_energy_electriccontroland_wiredlogyc.pdf) · [**🧪 Simulador**](https://atsep-controllogyc.vercel.app/) · [**🌐 Portal de la clase**](docs/index.html)
 
 </div>
 
@@ -20,7 +20,7 @@
 
 ## Tu recorrido de aprendizaje
 
-Este repositorio reúne **las tres piezas de una misma experiencia**: la presentación teórica, el [simulador interactivo](https://github.com/marcoteran/atsep-controllogyc) y un banco físico con **ESP32 + 74HC08**. No son tres cursos independientes: se refuerzan mutuamente.
+Este repositorio reúne **las tres piezas de una misma experiencia**: la presentación teórica, el [simulador interactivo](https://atsep-controllogyc.vercel.app/) y un banco físico con **ESP32 + 74HC08**. No son tres cursos independientes: se refuerzan mutuamente.
 
 > **Pregunta guía:** si falla la red eléctrica durante una aproximación nocturna, ¿cómo se decide cuándo cambiar a la planta de respaldo evitando conectar ambas fuentes a la vez?
 
@@ -28,8 +28,8 @@ Este repositorio reúne **las tres piezas de una misma experiencia**: la present
 
 | Recurso | ¿Qué encontrarás? | Acceso |
 |:--|:--|:--|
-| **01 · Presentación teórica** | 235 páginas: mando y potencia, contactores, lógica cableada, temporizadores, enclavamientos y transferencia. | [Ver / descargar PDF](presentaciones/controles_electricos_y_logica_cableada.pdf) |
-| **02 · Simulador interactivo** | Once módulos para experimentar con circuitos y comprobar hipótesis. Es un **repositorio independiente**. | [Abrir repositorio del simulador](https://github.com/marcoteran/atsep-controllogyc) |
+| **01 · Presentación teórica** | 235 páginas: mando y potencia, contactores, lógica cableada, temporizadores, enclavamientos y transferencia. | [Ver / descargar PDF](presentaciones/marcoteran_energy_electriccontroland_wiredlogyc.pdf) |
+| **02 · Simulador interactivo** | Once módulos para experimentar con circuitos y comprobar hipótesis. Es un **repositorio independiente**. | [Abrir simulador](https://atsep-controllogyc.vercel.app/) |
 | **03 · Laboratorio físico** | Guía paso a paso de 3 horas, circuitos, cálculos, tablas y evidencias. | [Descargar guía PDF](guia/guia_laboratorio_ESP32_ATSEP.pdf) |
 | **04 · Programa para ESP32** | Código Arduino `.ino` que implementa los modos 1–4 y las pruebas `b` y `k`. | [Descargar archivo `.ino`](firmware/banco_simple_esp32.ino) |
 
@@ -39,10 +39,10 @@ Este repositorio reúne **las tres piezas de una misma experiencia**: la present
 
 | Práctica | Tiempo | Aprenderás a… | Simulador relacionado | Teoría de apoyo |
 |:--|--:|:--|:--|:--|
-| **1. LED y resistencia** | 25 min | Calcular corriente, montar, medir y distinguir mando de potencia | [Mando vs. potencia](https://github.com/marcoteran/atsep-controllogyc/tree/master/components/modules/mando-potencia.tsx) | [Conceptos iniciales](presentaciones/controles_electricos_y_logica_cableada.pdf#page=15) |
-| **2. Pulsador e interruptor** | 35 min | Reconocer entradas digitales, polarización pull-up/pull-down y posición de contactos | [Mandos y señalización](https://github.com/marcoteran/atsep-controllogyc/tree/master/components/modules/mandos.tsx) | [Elementos de mando](presentaciones/controles_electricos_y_logica_cableada.pdf#page=79) |
-| **3. Marcha–paro y retención** | 45 min | Comprender memoria de marcha e inhibición hardware mediante 74HC08 | [Lógica y retención](https://github.com/marcoteran/atsep-controllogyc/tree/master/components/modules/logica.tsx) | [Autoenclavamiento](presentaciones/controles_electricos_y_logica_cableada.pdf#page=100) |
-| **4. Red–planta** | 40 min | Confirmar fallas, temporizar, transferir e identificar la ausencia de enclavamiento cruzado | [Enclavamientos](https://github.com/marcoteran/atsep-controllogyc/tree/master/components/modules/enclavamientos.tsx) · [Transferencia](https://github.com/marcoteran/atsep-controllogyc/tree/master/components/modules/transferencia.tsx) | [Transferencia](presentaciones/controles_electricos_y_logica_cableada.pdf#page=178) |
+| **1. LED y resistencia** | 25 min | Calcular corriente, montar, medir y distinguir mando de potencia | [Mando vs. potencia](https://github.com/marcoteran/atsep-controllogyc/tree/master/components/modules/mando-potencia.tsx) | [Conceptos iniciales](presentaciones/marcoteran_energy_electriccontroland_wiredlogyc.pdf#page=15) |
+| **2. Pulsador e interruptor** | 35 min | Reconocer entradas digitales, polarización pull-up/pull-down y posición de contactos | [Mandos y señalización](https://github.com/marcoteran/atsep-controllogyc/tree/master/components/modules/mandos.tsx) | [Elementos de mando](presentaciones/marcoteran_energy_electriccontroland_wiredlogyc.pdf#page=79) |
+| **3. Marcha–paro y retención** | 45 min | Comprender memoria de marcha e inhibición hardware mediante 74HC08 | [Lógica y retención](https://github.com/marcoteran/atsep-controllogyc/tree/master/components/modules/logica.tsx) | [Autoenclavamiento](presentaciones/marcoteran_energy_electriccontroland_wiredlogyc.pdf#page=100) |
+| **4. Red–planta** | 40 min | Confirmar fallas, temporizar, transferir e identificar la ausencia de enclavamiento cruzado | [Enclavamientos](https://github.com/marcoteran/atsep-controllogyc/tree/master/components/modules/enclavamientos.tsx) · [Transferencia](https://github.com/marcoteran/atsep-controllogyc/tree/master/components/modules/transferencia.tsx) | [Transferencia](presentaciones/marcoteran_energy_electriccontroland_wiredlogyc.pdf#page=178) |
 
 Los tiempos anteriores no incluyen **20 min de preparación** ni **15 min de cierre**: total **180 min**. Todos los ejemplos emplean LEDs de 3,3 V para **simular órdenes de mando**; no controlan cargas de potencia reales.
 
@@ -64,8 +64,7 @@ Luego abra `http://localhost:3000` y seleccione los módulos **Mandos**, **Lógi
 
 - 📗 **[Guía del laboratorio (PDF)](guia/guia_laboratorio_ESP32_ATSEP.pdf)** — incluye código completo y anexo de conexiones.
 - 🔧 **[Programa para Arduino IDE (.ino)](firmware/banco_simple_esp32.ino)** — se carga en el ESP32.
-- 📊 **[Presentación de la clase (PDF, 235 páginas)](presentaciones/controles_electricos_y_logica_cableada.pdf)** — documento aportado por el docente.
-- 📝 **[Fuente LaTeX editable (.tex)](guia/guia_laboratorio_ESP32_ATSEP.tex)** — permite mantener el material académico.
+- 📊 **[Presentación de la clase (PDF, 235 páginas)](presentaciones/marcoteran_energy_electriccontroland_wiredlogyc.pdf)** — documento aportado por el docente.
 
 > Para descargar un archivo desde GitHub, ábrelo y selecciona **Download raw**. Dado el tamaño de la presentación (cerca de 40 MiB), es preferible descargarla en lugar de depender de la vista previa en GitHub. La extensión `.ino` es un archivo de código Arduino, no un PDF.
 
