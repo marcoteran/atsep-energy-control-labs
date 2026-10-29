@@ -12,7 +12,7 @@
 ![Arduino](https://img.shields.io/badge/firmware-Arduino-2563eb?style=flat-square&logo=arduino)
 ![Duración](https://img.shields.io/badge/pr%C3%A1ctica-3%20horas-475569?style=flat-square)
 
-[**📘 Guía PDF**](guia/guia_laboratorio_ATSEP.pdf) · [**⬇️ Descargar .ino**](firmware/banco_simple_esp32.ino) · [**🎓 Diapositivas PDF**](presentaciones/marcoteran_energy_electriccontroland_wiredlogyc.pdf) · [**🧪 Simulador**](https://atsep-controllogyc.vercel.app/) · [**🌐 Portal de la clase**](docs/index.html)
+[**📘 Guía PDF**](guia/guia_laboratorio_ATSEP.pdf) · [**⬇️ Descargar .ino**](firmware/banco_simple_esp32.ino) · [**🎓 Diapositivas PDF**](presentaciones/marcoteran_energy_electriccontroland_wiredlogyc.pdf) · [**👥 Taller en grupo PDF**](https://github.com/marcoteran/atsep-energy-control-labs/raw/refs/heads/master/taller/taller_cuarto_electrico_ATSEP.pdf) · [**🧪 Simulador**](https://atsep-controllogyc.vercel.app/) · [**🌐 Portal de la clase**](docs/index.html)
 
 </div>
 
@@ -32,6 +32,7 @@ Este repositorio reúne **las tres piezas de una misma experiencia**: la present
 | **02 · Simulador interactivo** | Once módulos para experimentar con circuitos y comprobar hipótesis. Es un **repositorio independiente**. | [Abrir simulador](https://atsep-controllogyc.vercel.app/) |
 | **03 · Laboratorio físico** | Guía paso a paso de 3 horas, circuitos, cálculos, tablas y evidencias. | [Descargar guía PDF](guia/guia_laboratorio_ATSEP.pdf) |
 | **04 · Programa para ESP32** | Código Arduino `.ino` que implementa los modos 1–4 y las pruebas `b` y `k`. | [Descargar archivo `.ino`](firmware/banco_simple_esp32.ino) |
+| **05 · Taller en grupo** | 4 horas, grupos de cuatro con roles rotativos: leer, especificar, diseñar, temporizar, enclavar y diagnosticar el cuarto eléctrico del caso, con registro de decisiones de ingeniería. | [Descargar taller PDF](https://github.com/marcoteran/atsep-energy-control-labs/raw/refs/heads/master/taller/taller_cuarto_electrico_ATSEP.pdf) |
 
 **Sin Internet en el aula:** el PDF de laboratorio incorpora el `.ino` como archivo adjunto (icono de clip y panel de adjuntos), que se puede extraer en un lector PDF compatible. También ofrece un hipervínculo de descarga desde GitHub; en repositorios privados se requieren permisos.
 
@@ -64,6 +65,7 @@ Luego abra `http://localhost:3000` y seleccione los módulos **Mandos**, **Lógi
 
 - 📗 **[Guía del laboratorio (PDF)](guia/guia_laboratorio_ATSEP.pdf)** — incluye código completo y anexo de conexiones.
 - 🔧 **[Programa para Arduino IDE (.ino)](firmware/banco_simple_esp32.ino)** — se carga en el ESP32.
+- 👥 **[Taller en grupo: el cuarto eléctrico del Aeródromo Escuela (PDF)](https://github.com/marcoteran/atsep-energy-control-labs/raw/refs/heads/master/taller/taller_cuarto_electrico_ATSEP.pdf)** — cuadernillo de trabajo para grupos de cuatro.
 - 📊 **[Presentación de la clase (PDF, 235 páginas)](presentaciones/marcoteran_energy_electriccontroland_wiredlogyc.pdf)** — documento aportado por el docente.
 
 > Para descargar un archivo desde GitHub, ábrelo y selecciona **Download raw**. Dado el tamaño de la presentación (cerca de 40 MiB), es preferible descargarla en lugar de depender de la vista previa en GitHub. La extensión `.ino` es un archivo de código Arduino, no un PDF.
@@ -91,6 +93,10 @@ atsep-energy-control-labs/
 ├── guia/
 │   ├── guia_laboratorio_ATSEP.pdf
 │   └── guia_laboratorio_ESP32_ATSEP.tex
+├── taller/
+│   ├── taller_cuarto_electrico_ATSEP.pdf
+│   ├── taller_cuarto_electrico_ATSEP.tex
+│   └── README.md
 ├── firmware/
 │   ├── banco_simple_esp32.ino
 │   └── README.md

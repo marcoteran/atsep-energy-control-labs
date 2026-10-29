@@ -1,0 +1,890 @@
+%% Taller en grupos de cuatro - El cuarto eléctrico del Aeródromo Escuela
+%% Básico ATSEP - Sistemas de Energía - Contenido académico y dirección docente: Marco Teran
+%% Basado en la presentación "Controles eléctricos y lógica cableada".
+%%
+%% Versión estudiante (desde la raíz del repositorio, dos pasadas):
+%%   pdflatex -interaction=nonstopmode -halt-on-error -output-directory=taller taller/taller_cuarto_electrico_ATSEP.tex
+%% Versión docente (incluye soluciones; requiere taller/soluciones_taller.tex, que NO se publica):
+%%   pdflatex -interaction=nonstopmode -halt-on-error -output-directory=taller -jobname=taller_cuarto_electrico_ATSEP_docente "\def\versiondocente{}\input{taller/taller_cuarto_electrico_ATSEP.tex}"
+\documentclass[11pt,a4paper]{article}
+\usepackage{iftex}
+
+\iftutex
+\usepackage{fontspec}
+\setsansfont{Latin Modern Sans}[Scale=0.92]
+\setmonofont{Latin Modern Mono}[Scale=0.92]
+\renewcommand{\familydefault}{\sfdefault}
+\else
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{textcomp}
+\usepackage{lmodern}
+\usepackage[scaled=0.92]{helvet}
+\renewcommand{\familydefault}{\sfdefault}
+\DeclareUnicodeCharacter{00A0}{~}
+\DeclareUnicodeCharacter{2212}{\ensuremath{-}}
+\fi
+
+\usepackage[spanish,es-noshorthands,es-nodecimaldot,es-tabla]{babel}
+\usepackage{needspace}
+\usepackage[a4paper,margin=2.2cm,headheight=14pt]{geometry}
+\usepackage{xcolor}
+\usepackage{booktabs,tabularx,array,multirow}
+\usepackage{enumitem}
+\usepackage{amsmath}
+\usepackage[output-decimal-marker={,},per-mode=symbol]{siunitx}
+\DeclareSIUnit\ohm{\ensuremath{\Omega}}
+\usepackage[european]{circuitikz}
+\usepackage{tikz}
+\usetikzlibrary{calc,positioning,arrows.meta}
+\usepackage[most]{tcolorbox}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{caption}
+\usepackage{float}
+\usepackage[colorlinks=true,urlcolor=blue,linkcolor=navy]{hyperref}
+
+% ---------- Colores (los mismos de la guía del laboratorio) ----------
+\definecolor{navy}{HTML}{0F2747}
+\definecolor{azul}{HTML}{2563EB}
+\definecolor{pizarra}{HTML}{475569}
+\definecolor{borde}{HTML}{D8DEE8}
+\definecolor{fondo}{HTML}{F7F9FC}
+\definecolor{verde}{HTML}{15803D}
+\definecolor{ambar}{HTML}{B45309}
+\definecolor{rojo}{HTML}{B91C1C}
+
+\captionsetup{font=small,labelfont={bf,color=navy}}
+\setlist{itemsep=2pt,topsep=4pt}
+\setlength{\parskip}{3pt}
+
+% ---------- Versión docente ----------
+\newif\ifdocente
+\ifdefined\versiondocente\docentetrue\fi
+
+% ---------- Títulos ----------
+\titleformat{\section}{\Large\bfseries\color{navy}}{\thesection}{0.8em}{}
+\titleformat{\subsection}{\large\bfseries\color{navy}}{\thesubsection}{0.6em}{}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\small\color{pizarra}Taller: el cuarto eléctrico del Aeródromo Escuela\ifdocente\ \textcolor{rojo}{\textbf{· VERSIÓN DOCENTE}}\fi}
+\rhead{\small\color{pizarra}Básico ATSEP - Sistemas de Energía}
+\cfoot{\small\color{pizarra}\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+% ---------- Cajas pedagógicas ----------
+\newtcolorbox{objetivo}{colback=fondo,colframe=navy,boxrule=0.6pt,arc=2pt,title=Objetivo,fonttitle=\bfseries\small,left=6pt,right=6pt}
+\newtcolorbox{curso}[1][]{colback=white,colframe=azul,boxrule=0.6pt,arc=2pt,title=Conexión con las diapositivas,fonttitle=\bfseries\small,#1}
+\newtcolorbox{predice}{colback=white,colframe=ambar,boxrule=0.6pt,arc=2pt,title=Predigan antes de calcular,fonttitle=\bfseries\small}
+\newtcolorbox{decision}{colback=ambar!5,colframe=ambar,boxrule=0.8pt,arc=2pt,title=Decisión de ingeniería · va al registro (Anexo A),fonttitle=\bfseries\small}
+\newtcolorbox{falla}{colback=white,colframe=rojo!70,boxrule=0.6pt,arc=2pt,title=Turno del verificador de fallas,fonttitle=\bfseries\small}
+\newtcolorbox{evidencia}{colback=green!3,colframe=verde,boxrule=0.6pt,arc=2pt,title=Evidencia de la etapa,fonttitle=\bfseries\small}
+\newtcolorbox{datos}[1][Datos]{colback=fondo,colframe=borde,coltitle=navy,boxrule=0.6pt,arc=2pt,title={#1},fonttitle=\bfseries\small}
+\newtcolorbox{regla}[1][Cuatro reglas del grupo]{colback=fondo,colframe=navy,boxrule=0.6pt,arc=2pt,title={#1},fonttitle=\bfseries\small}
+\newtcolorbox{alerta}{colback=red!3,colframe=rojo,boxrule=0.6pt,arc=2pt,title=Caso compuesto,fonttitle=\bfseries\small}
+\newtcolorbox{solucionbox}{colback=green!4,colframe=verde,boxrule=0.8pt,arc=2pt,title=Solución y criterios para el docente,fonttitle=\bfseries\small,breakable}
+
+% ---------- Soluciones: se cargan solo en la versión docente ----------
+\newcommand{\defsol}[2]{\long\expandafter\def\csname sol@#1\endcsname{#2}}
+\newcommand{\solucion}[1]{%
+  \ifdocente
+    \ifcsname sol@#1\endcsname
+      \begin{solucionbox}\small\csname sol@#1\endcsname\end{solucionbox}%
+    \else
+      \begin{solucionbox}\small\textit{(Sin solución registrada para #1.)}\end{solucionbox}%
+    \fi
+  \fi}
+\ifdocente
+  \IfFileExists{taller/soluciones_taller.tex}{\input{taller/soluciones_taller.tex}}{%
+    \IfFileExists{soluciones_taller.tex}{\input{soluciones_taller.tex}}{%
+      \PackageWarningNoLine{Taller ATSEP}{No se encontro soluciones_taller.tex; la version docente saldra sin soluciones}}}
+\fi
+
+% ---------- Utilidades ----------
+\newcommand{\cv}[1]{\mathrm{#1}}
+\newcommand{\no}[1]{\overline{\mathrm{#1}}}
+\newcommand{\linea}[1][\linewidth]{\par\noindent\rule{#1}{0.4pt}\par\vspace{6pt}}
+\newcommand{\lineas}[1]{\vspace{4pt}\foreach \i in {1,...,#1}{\linea}}
+\newcommand{\blanco}{\rule[-1pt]{1.4cm}{0.4pt}}
+\newcommand{\paso}[1]{\par\needspace{4\baselineskip}\noindent\textbf{\color{navy}Paso #1.}\ }
+\newcommand{\pdfpag}[1]{\href{https://github.com/marcoteran/atsep-energy-control-labs/raw/refs/heads/master/presentaciones/marcoteran_energy_electriccontroland_wiredlogyc.pdf\#page=#1}{p.~#1}}
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}
+\newcolumntype{C}{>{\centering\arraybackslash}X}
+% Columnas para responder a mano: altura mínima de renglón
+\newcommand{\renglon}{\rule[-0.42cm]{0pt}{1.1cm}}
+\newcolumntype{W}{>{\raggedright\arraybackslash\renglon}X}
+\newcolumntype{Q}{>{\centering\arraybackslash\renglon}X}
+
+% ---------- Plano del extractor (escalera horizontal, leído en reposo) ----------
+% #1 = 1 dibuja los puntos de prueba P0-P5
+\newcommand{\planoExtractor}[1][0]{%
+\begin{circuitikz}[font=\small,scale=0.82,transform shape]
+  \draw (0,2.9) node[above]{L (120 V CA)} to[fuse,l_=F3] (0,1.3) -- (0,-5.2);
+  \draw (14,2.9) node[above]{N} -- (14,-5.2);
+  \node[anchor=east,font=\scriptsize,text=pizarra] at (-0.3,2.9) {desde T1 220/120 V};
+  % Camino 1
+  \draw (0,0) to[ncs,l=F2,a=95-96] (2.3,0) to[ncpb,l=S0,a=emerg.] (4.6,0) to[ncpb,l=S1,a=paro] (6.9,0) -- (7.4,0)
+        to[nopb,l=S2,a=marcha] (9.6,0) -- (10.3,0) to[generic,l=KM1,a=A1-A2] (12.5,0) -- (14,0);
+  \draw (7.4,0) -- (7.4,-1.5) to[nos,l_=KM1 13-14] (9.6,-1.5) -- (9.6,0);
+  % Camino 2
+  \draw (0,-3.0) to[nos,l=KM1,a=33-34] (2.3,-3.0) -- (10.3,-3.0) to[lamp,l=H1,a=marcha] (12.5,-3.0) -- (14,-3.0);
+  % Camino 3
+  \draw (0,-4.9) to[nos,l=F2,a=97-98] (2.3,-4.9) -- (10.3,-4.9) to[lamp,l=H2,a=sobrecarga] (12.5,-4.9) -- (14,-4.9);
+  \foreach \y/\n in {0/1,-3.0/2,-4.9/3}{\node[draw=navy,circle,inner sep=1.2pt,font=\scriptsize\bfseries,text=navy] at (-0.75,\y) {\n};}
+  \ifnum#1=1
+    \foreach \x/\y/\n/\pos in {0/2.55/P0/east,0/1.0/P1/east,2.3/0/P2/south,4.6/0/P3/south,6.9/0/P4/south,10.3/0/P5/south}{
+      \fill[rojo] (\x,\y) circle (2.6pt);
+      \node[font=\scriptsize\bfseries,text=rojo,anchor=\pos,inner sep=2pt] at ($(\x,\y)+(-0.12,0.18)$) {\n};}
+  \fi
+\end{circuitikz}}
+
+% ===================================================================
+\begin{document}
+\thispagestyle{empty}
+
+{\color{azul}\ttfamily\small ATSEP CONTROL LAB - TALLER EN GRUPO\ifdocente\ \textcolor{rojo}{- VERSIÓN DOCENTE CON SOLUCIONES}\fi}\par\vspace{4pt}
+{\LARGE\bfseries\color{navy} Taller: el cuarto eléctrico del Aeródromo Escuela\par}\vspace{4pt}
+{\large\color{pizarra} Leer, especificar, diseñar, temporizar, enclavar y diagnosticar: decisiones de ingeniería con lógica cableada\par}\vspace{6pt}
+{\small Básico ATSEP - Sistemas de Energía - Grupos de \textbf{cuatro} integrantes - Duración: \textbf{4 horas} (dos sesiones de 2 h)\par
+\textbf{Contenido académico y dirección docente:} Marco Teran}
+
+\vspace{6pt}
+\noindent\textbf{Material de consulta:}
+\href{https://github.com/marcoteran/atsep-energy-control-labs/raw/refs/heads/master/presentaciones/marcoteran_energy_electriccontroland_wiredlogyc.pdf}{\textcolor{azul}{\underline{Diapositivas del curso (PDF)}}}
+\quad
+\href{https://atsep-controllogyc.vercel.app/}{\textcolor{azul}{\underline{Simulador}}} (opcional, para comprobar escaleras).
+Los números de página que aparecen en el taller son páginas del PDF de las diapositivas.
+
+\section*{Cómo funciona este taller}
+
+Ustedes son el equipo de ingeniería que debe dejar listo el cuarto eléctrico del Aeródromo Escuela: el mismo caso que acompaña todo el módulo. Cada etapa corresponde a una tarea de la tabla «Un mismo cuarto eléctrico para todo el módulo» de las diapositivas. No se energiza nada: todo se hace con el plano, los datos de catálogo, la calculadora y el razonamiento.
+
+\begin{objetivo}
+Aplicar los conceptos del módulo para \textbf{leer} un plano, \textbf{especificar} equipos, \textbf{diseñar} la lógica de mando, \textbf{temporizar}, \textbf{enclavar} y \textbf{diagnosticar}, tomando en cada etapa decisiones de ingeniería que el grupo pueda justificar con datos, normas y modos de falla.
+\end{objetivo}
+
+En muchas preguntas \textbf{no hay una única respuesta correcta}, pero sí hay razones malas. Lo que se evalúa es que cada elección esté respaldada por un dato, una norma o un análisis de falla, y que el grupo sepa qué riesgo acepta al elegirla.
+
+\subsection*{Roles: cuatro trabajos, cuatro personas}
+
+\begin{center}\small\renewcommand{\arraystretch}{1.25}
+\begin{tabularx}{\linewidth}{@{}l L L@{}}
+\toprule
+\textbf{Rol} & \textbf{Qué hace} & \textbf{Pregunta que siempre hace}\\
+\midrule
+\textbf{DL} Diseño lógico & Escribe las ecuaciones y dibuja las escaleras & ¿Qué condiciones energizan esta bobina?\\
+\textbf{ES} Especificación & Lee catálogos y normas, hace los cálculos & ¿Qué dato de la placa o de la ficha lo respalda?\\
+\textbf{VF} Verificación de fallas & Busca cómo falla cada propuesta: cable cortado, contacto soldado, tensión que vuelve & ¿Hacia dónde falla esto?\\
+\textbf{RT} Registro y tiempo & Lleva el registro de decisiones, controla el reloj y presenta & ¿Esto ya quedó escrito con su razón?\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+Los roles \textbf{rotan} para que cada integrante ejerza los cuatro. Escriban los nombres antes de empezar:
+
+\begin{center}\small\renewcommand{\arraystretch}{1.35}
+\begin{tabularx}{\linewidth}{@{}l L c c c c@{}}
+\toprule
+& \textbf{Integrante} & \textbf{Etapas 1--2} & \textbf{Etapas 3--4} & \textbf{Etapas 5--6} & \textbf{Etapas 7--8}\\
+\midrule
+A & & DL & RT & VF & ES\\
+B & & ES & DL & RT & VF\\
+C & & VF & ES & DL & RT\\
+D & & RT & VF & ES & DL\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{regla}
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Predecir antes de calcular.} Cada recuadro «Predigan» se responde por escrito antes de seguir. Si la predicción falla, se anota por qué: eso también es aprendizaje.
+  \item \textbf{Toda decisión va al registro} (Anexo A): opciones consideradas, opción elegida, razón y riesgo que se acepta.
+  \item \textbf{Ninguna propuesta pasa sin el verificador:} cable cortado, contacto soldado y tensión que vuelve.
+  \item \textbf{Nadie firma lo que no puede explicar.} En la defensa final, el docente elige quién responde cada pregunta.
+\end{enumerate}
+\end{regla}
+
+\subsection*{Ruta de trabajo}
+
+\begin{center}\small\renewcommand{\arraystretch}{1.2}
+\begin{tabularx}{\linewidth}{@{}l l r L@{}}
+\toprule
+\textbf{Sesión} & \textbf{Etapa} & \textbf{Min} & \textbf{Tarea del caso}\\
+\midrule
+1 & 0. Organización & 10 & Roles, lectura del caso\\
+1 & 1. Leer el plano del extractor & 20 & Reposo, estados, referencias y auditoría de cableado\\
+1 & 2. Especificar el extractor & 35 & Contactor, relé térmico, bobina y fuente de mando\\
+1 & 3. Frente del tablero & 15 & Botones, colores, pilotos y respuesta al jefe\\
+1 & 4. Lógica del extractor & 40 & MAN-0-AUT, local/remoto, rearranque y fallas\\
+\midrule
+2 & 5. Bomba y temporizadores & 30 & Niveles, alarmas, posventilación y reenganche escalonado\\
+2 & 6. Transferencia red--planta & 40 & Presupuesto de 15 s, filtro, barreras y Cat II\\
+2 & 7. Diagnóstico y línea a la torre & 35 & Puntos de prueba, caída de tensión y corriente capacitiva\\
+2 & 8. Cierre y defensa & 15 & Registro completo y defensa oral\\
+\midrule
+& \textbf{Total} & \textbf{240} & \\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\section*{El caso: qué hay en el cuarto eléctrico}
+
+El cuarto eléctrico alimenta las luces de aproximación de una pista con aproximación de precisión \textbf{Categoría~I}. Reguladores y transformadores calientan el cuarto; un extractor lo ventila; una bomba de trasiego llena el tanque diario de la planta; un tablero de transferencia pasa la carga de la red a la planta y la devuelve; la torre puede dar órdenes a distancia.
+
+\begin{center}\small\renewcommand{\arraystretch}{1.2}
+\begin{tabularx}{\linewidth}{@{}l L l@{}}
+\toprule
+\textbf{Designación} & \textbf{Equipo} & \textbf{Tablero}\\
+\midrule
+KM1, M1 & Contactor y motor del extractor (3\,$\sim$ \SI{220}{V}) & Servicios, mando \SI{120}{V} CA\\
+KM3 & Resistencia del deshumidificador & Servicios\\
+KM4, M4 & Contactor y motor de la bomba de trasiego & Servicios\\
+KM5 & Aire acondicionado AA1 de la sala de equipos & Servicios\\
+T1, F3 & Transformador de mando 220/\SI{120}{V} y su fusible & Servicios\\
+KM1, KM2 (transf.) & Contactores de red y de planta & Transferencia, mando \SI{24}{V} CC\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+Cada tablero tiene su propia numeración, como en las diapositivas: en la etapa~6, KM1 y KM2 son los contactores de la transferencia, no el extractor.
+
+\begin{alerta}
+Es un escenario armado con fines de enseñanza; no es el plano de ninguna estación real. Los catálogos, tiempos y registros de este taller son \textbf{ilustrativos}. En una instalación real mandan la ficha del fabricante, la leyenda del plano y la norma vigente.
+\end{alerta}
+
+% ===================================================================
+\section{Leer el plano del extractor}
+
+\begin{curso}
+Secciones 1 y 2: mando y potencia, regla del reposo, numeración de bornes, referencias cruzadas y método de lectura en cinco pasos (\pdfpag{15} y \pdfpag{33}).
+\end{curso}
+
+Este es el plano del extractor, dibujado en reposo. La potencia no está dibujada: 3\,$\sim$ \SI{220}{V} \SI{60}{Hz} $\rightarrow$ F1 $\rightarrow$ contactos principales de KM1 $\rightarrow$ elemento térmico de F2 $\rightarrow$ M1.
+
+\begin{figure}[H]
+\centering
+\planoExtractor
+\caption{Plano de mando del extractor: tres caminos, una sola bobina. Mando a \SI{120}{V} CA, leído en reposo.}
+\label{fig:extractor}
+\end{figure}
+
+\begin{predice}
+Mientras alguien mantiene presionado el PARO S1, ¿cómo aparece S1 dibujado en el plano? ¿Y cómo está realmente su contacto?
+\lineas{2}
+\end{predice}
+\solucion{1.0}
+
+\paso{1.1} Apliquen los dos primeros pasos del método de lectura: ¿de dónde sale la tensión de mando y qué la protege? ¿Qué equipo es la frontera entre potencia y mando?
+\lineas{2}
+\solucion{1.1}
+
+\paso{1.2} Completen la tabla de estados. Escriban \textbf{C} (cerrado) o \textbf{A} (abierto) para cada contacto, y \textbf{ON}/\textbf{OFF} para bobina y pilotos.
+
+\begin{center}\small\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\linewidth}{@{}l|C|C|C|C@{}}
+\hline
+\textbf{Elemento} & \textbf{(a) Reposo (plano)} & \textbf{(b) S2 pulsado, KM1 ya cerró} & \textbf{(c) S2 soltado, en marcha} & \textbf{(d) F2 disparó en marcha}\\
+\hline
+F2 95-96 & & & & \\\hline
+S0, S1 & & & & \\\hline
+S2 & & & & \\\hline
+KM1 13-14 & & & & \\\hline
+KM1 33-34 & & & & \\\hline
+F2 97-98 & & & & \\\hline
+Bobina KM1 & & & & \\\hline
+H1 / H2 & & & & \\
+\hline
+\end{tabularx}
+\end{center}
+\solucion{1.2}
+
+\paso{1.3} Clasifiquen cada elemento como \textbf{P} (potencia), \textbf{M} (mando) o \textbf{F} (frontera). ¿Qué dispositivo tiene un pie en cada circuito?
+
+\begin{center}\small\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\linewidth}{@{}|C|C|C|C|C|@{}}
+\hline
+F1 & T1 & F3 & Bobina KM1 & Contactos 1/L1-2/T1\\\hline
+\renglon & & & & \\\hline
+Elemento térmico de F2 & F2 95-96 & H2 & M1 & S0\\\hline
+\renglon & & & & \\\hline
+\end{tabularx}
+\end{center}
+Dispositivo con un pie en cada circuito: \blanco\blanco
+\solucion{1.3}
+
+\paso{1.4} \textbf{Auditoría de una lista de cableado.} Un técnico armó el tablero con esta lista. Usen la regla de la unidad del borne (1-2 NC, 3-4 NA, 5-6 y 7-8 función especial) y el plano para decidir si cada línea es correcta. Para las incorrectas, \textbf{predigan el síntoma} que vería el operador.
+
+\begin{center}\small\renewcommand{\arraystretch}{1.4}
+\begin{tabularx}{\linewidth}{@{}c p{6.2cm} >{\centering\arraybackslash\renglon}p{1.7cm} W@{}}
+\toprule
+\textbf{\#} & \textbf{Lo que dice la lista} & \textbf{¿Correcta?} & \textbf{Síntoma si no lo es}\\
+\midrule
+1 & Corte por sobrecarga: F2 97-98 en serie en el camino 1 & & \\
+2 & Retención: KM1 13-14 en paralelo con S2 & & \\
+3 & Piloto de marcha H1 alimentado por KM1 21-22 & & \\
+4 & PARO S1 con su bloque 11-12 & & \\
+5 & MARCHA S2 con su bloque 21-22 & & \\
+6 & Piloto H2 alimentado por F2 97-98 & & \\
+\bottomrule
+\end{tabularx}
+\end{center}
+\solucion{1.4}
+
+\begin{evidencia}
+Tabla de estados completa, clasificación y auditoría con los tres errores y sus síntomas.
+\end{evidencia}
+
+% ===================================================================
+\section{Especificar el extractor: contactor, protección y fuente de mando}
+
+\begin{curso}
+Sección 3: contactor por dentro, llamada y mantenimiento de la bobina, ventana de cierre, categorías de empleo, relé térmico y clase de disparo (\pdfpag{50}).
+\end{curso}
+
+\begin{datos}[Datos del motor y del cuarto]
+Extractor trifásico \SI{220}{V} \SI{60}{Hz}, corriente nominal de placa $I_n = \SI{11,4}{A}$, arranque directo de \SI{1,5}{s}. La temperatura medida dentro del tablero llega a \SI{48}{\celsius} en las tardes de verano. El mando es de \SI{120}{V} CA.
+\end{datos}
+
+\begin{datos}[Catálogo ilustrativo de contactores]
+\small\renewcommand{\arraystretch}{1.2}
+\begin{tabularx}{\linewidth}{@{}l c c L c@{}}
+\toprule
+\textbf{Ref.} & \textbf{$I_e$ AC-1} & \textbf{$I_e$ AC-3 (\SI{220}{V})} & \textbf{Auxiliares incorporados} & \textbf{Bobina CA: llamada / mant.}\\
+\midrule
+CT-09 & \SI{25}{A} & \SI{9}{A} & 1 NA (13-14) & \SI{32}{VA} / \SI{4,5}{VA}\\
+CT-12 & \SI{25}{A} & \SI{12}{A} & 1 NA (13-14) & \SI{32}{VA} / \SI{4,5}{VA}\\
+CT-18 & \SI{32}{A} & \SI{18}{A} & 1 NA + 1 NC (13-14, 21-22) & \SI{70}{VA} / \SI{8}{VA}\\
+CT-25 & \SI{40}{A} & \SI{25}{A} & 1 NA + 1 NC (13-14, 21-22) & \SI{70}{VA} / \SI{8}{VA}\\
+\bottomrule
+\end{tabularx}
+
+\smallskip
+Bobinas disponibles: \SI{24}{V} CC, \SI{120}{V} CC, \SI{120}{V} CA, \SI{220}{V} CA. Bloques auxiliares frontales: BA-11 (33-34 NA + 41-42 NC) y BA-20 (33-34 + 43-44, 2 NA).
+\textbf{Nota del fabricante:} las corrientes AC-3 valen hasta \SI{40}{\celsius} de ambiente junto al aparato; entre 40 y \SI{60}{\celsius}, reducir \SI{1}{\percent} por cada grado sobre \SI{40}{\celsius}.
+\end{datos}
+
+\begin{predice}
+En la placa del CT-09 la cifra más grande es «25 A». ¿Sirve para un motor de \SI{11,4}{A}? Respondan antes de leer la tabla con cuidado.
+\lineas{1}
+\end{predice}
+\solucion{2.0}
+
+\paso{2.1} \textbf{Contactor.} ¿Qué columna manda para este motor y por qué? Calculen la corriente AC-3 corregida por temperatura de los modelos candidatos y elijan uno.
+\lineas{4}
+\solucion{2.1}
+
+\paso{2.2} \textbf{Contactos auxiliares.} Según el plano de la figura~\ref{fig:extractor}, ¿cuántos contactos auxiliares necesita KM1, de qué tipo y con qué bornes? ¿Alcanzan los incorporados? Si no, ¿qué bloque agregan?
+\lineas{2}
+\solucion{2.2}
+
+\begin{datos}[Catálogo ilustrativo de relés térmicos]
+\small
+RT-1: ajuste 7--\SI{10}{A} · RT-2: 9--\SI{13}{A} · RT-3: 12--\SI{18}{A}. Todos con clase 10A, rearme seleccionable manual o automático, contactos 95-96 (NC) y 97-98 (NA).
+Bandas de clase a $7{,}2\times I_r$ desde frío: 10A: 2--\SI{10}{s} · 10: 4--\SI{10}{s} · 20: 6--\SI{20}{s} · 30: 9--\SI{30}{s}. Verificar siempre la curva del fabricante.
+\end{datos}
+
+\paso{2.3} \textbf{Relé térmico.} Definan el modelo, el ajuste $I_r$ y la clase. ¿El arranque de \SI{1,5}{s} cabe sin disparos?
+\lineas{2}
+\solucion{2.3}
+
+\begin{decision}
+\textbf{Rearme manual o automático del térmico.} En la etapa~4 el extractor tendrá un modo AUT gobernado por un termostato (mando de 2 hilos). Analicen qué ocurre con cada tipo de rearme cuando el motor tiene una falla que lo sobrecarga una y otra vez, y decidan.
+\lineas{3}
+\end{decision}
+\solucion{2.3d}
+
+\paso{2.4} \textbf{Contraste.} Otro cuarto tiene un ventilador de alta inercia que arranca en \SI{7}{s}. ¿Qué clase eligen y qué clases quedan descartadas? Justifiquen con las bandas.
+\lineas{2}
+\solucion{2.4}
+
+\paso{2.5} \textbf{Fuente de mando.} El transformador T1 alimenta todo el mando del tablero de servicios:
+
+\begin{center}\small\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{}l l c c@{}}
+\toprule
+\textbf{Bobina o carga} & \textbf{Aparato} & \textbf{Llamada (VA)} & \textbf{Mantenimiento (VA)}\\
+\midrule
+KM1 extractor & el que eligieron en 2.1 & & \\
+KM3 deshumidificador & CT-12 & 32 & 4,5\\
+KM4 bomba & CT-09 & 32 & 4,5\\
+KM5 aire acondicionado & CT-25 & 70 & 8\\
+Seis pilotos & & 7,2 & 7,2\\
+Relés auxiliares y temporizadores & & 10 & 10\\
+\midrule
+\textbf{Total} & & & \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Tamaños comerciales de T1: 100, 160, 250 y \SI{400}{VA}. Completen la tabla. ¿En qué situación real cierran todas las bobinas a la vez? Elijan T1.
+\lineas{3}
+\solucion{2.5}
+
+\begin{decision}
+\textbf{¿Se puede ahorrar un tamaño de transformador escalonando los arranques?} En la etapa 5 se agregarán temporizadores que reconectan las cargas una por una tras un apagón. Calculen la peor llamada si solo una bobina llama a la vez y decidan si confían en el escalonamiento para elegir un T1 más pequeño. ¿Qué riesgo aceptan?
+\lineas{3}
+\end{decision}
+\solucion{2.5d}
+
+\paso{2.6} \textbf{Medición en campo.} En otra estación instalaron un T1 de \SI{160}{VA}. Al volver la energía, con todas las bobinas llamando, se miden \SI{101}{V} entre A1 y A2 de KM1. ¿Qué pueden afirmar? ¿Qué harían: cambiar la bobina, cambiar el transformador u otra cosa?
+\lineas{3}
+\solucion{2.6}
+
+\paso{2.7} \textbf{Error de bodega.} Para el contactor elegido hay en bodega tres bobinas: \SI{120}{V} CC, \SI{24}{V} CC y \SI{120}{V} CA. ¿Cuál montan? Para las otras dos, ¿qué pasaría si las montaran en este mando?
+\lineas{3}
+\solucion{2.7}
+
+\begin{evidencia}
+Contactor, bloque auxiliar, relé térmico ($I_r$, clase, rearme) y T1 elegidos, cada uno con su cálculo y su razón en el registro.
+\end{evidencia}
+
+% ===================================================================
+\section{Especificar el frente del tablero}
+
+\begin{curso}
+Sección 4: pulsadores y selectores, paro de emergencia, colores IEC 60204-1 e IEC 60073, «una indicación no es confirmación física» (\pdfpag{79}).
+\end{curso}
+
+El jefe de mantenimiento envía este correo:
+
+\begin{datos}[Correo del jefe de mantenimiento]
+\itshape «Quiero el botón de MARCHA en rojo, que es lo más importante, y el de PARO en verde para que se vea que es seguro. Con un solo piloto que diga “todo bien” basta. Y pónganle un hongo de emergencia grande, que eso siempre es más seguro.»
+\end{datos}
+
+El ventilador está dentro de un ducto con rejilla fija; solo se accede a las aspas desmontando la rejilla durante el mantenimiento.
+
+\paso{3.1} Especifiquen el frente del tablero del extractor. Para cada elemento: tipo de actuador, tipo de contacto, color y \textbf{una razón}.
+
+\begin{center}\small\renewcommand{\arraystretch}{1.5}
+\begin{tabularx}{\linewidth}{@{}l W W W W@{}}
+\toprule
+\textbf{Elemento} & \textbf{Actuador} & \textbf{Contacto} & \textbf{Color} & \textbf{Razón}\\
+\midrule
+MARCHA S2 & & & & \\
+PARO S1 & & & & \\
+Selector SA MAN-0-AUT & & & & \\
+Emergencia S0 (¿sí o no?) & & & & \\
+H1 marcha & & & & \\
+H2 sobrecarga & & & & \\
+H3 modo AUT & & & & \\
+Prueba de lámparas & & & & \\
+\bottomrule
+\end{tabularx}
+\end{center}
+\solucion{3.1}
+
+\paso{3.2} Respondan el correo en un máximo de cinco líneas, citando la norma en cada punto que rechacen.
+\lineas{5}
+\solucion{3.2}
+
+\begin{decision}
+\textbf{¿Hace falta un sensor de caudal?} H1 encendido prueba que KM1 33-34 está cerrado, no que el aire se mueva. Decidan si instalan un interruptor de flujo BF1 con alarma «extractor sin caudal» o si aceptan el riesgo con inspección periódica. Piensen en qué depende del calor de este cuarto.
+\lineas{3}
+\end{decision}
+\solucion{3.3}
+
+% ===================================================================
+\section{Diseñar la lógica del extractor}
+
+\begin{curso}
+Sección 5: serie = Y, paralelo = O, NC = NO; retención con paro dominante; mando de 2 y 3 hilos; seguridad positiva; método de diseño con fallas (\pdfpag{100}).
+\end{curso}
+
+\begin{datos}[Especificación funcional]
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Selector SA MAN-0-AUT:} 13-14 cerrado en MAN; 23-24 cerrado en AUT; en 0 ambos abiertos.
+  \item \textbf{En MAN:} arranque y paro por pulsadores locales (S2 marcha NA, S1 paro NC) \textbf{o} desde la torre (S4 marcha NA, S3 paro NC). Tras un apagón \textbf{no} debe rearrancar solo.
+  \item \textbf{En AUT:} sigue al termostato BT1 (NA, cierra con temperatura alta). Tras un apagón \textbf{sí} debe rearrancar solo si hace calor.
+  \item \textbf{En 0:} no funciona de ninguna forma.
+  \item \textbf{Siempre:} el relé térmico F2 (95-96) y, si lo decidieron en la etapa~3, la emergencia S0 dominan sobre todo.
+\end{itemize}
+Por ahora la torre se conecta directo; en la etapa~7 decidirán cómo llega esa señal.
+\end{datos}
+
+\paso{4.1} DL escribe, para cada modo, qué \textbf{activa}, qué \textbf{retiene} y qué \textbf{desactiva}, en palabras y sin ecuaciones.
+\lineas{4}
+
+\paso{4.2} Escriban la ecuación de la bobina KM1. ¿Dónde debe quedar la retención para que AUT no «memorice»?
+\[
+\cv{KM1} = \rule{11cm}{0.4pt}
+\]
+\solucion{4.2}
+
+\paso{4.3} Dibujen la escalera entre L y N, con designaciones y bornes. Comprueben que todos los paros quedan en serie y todas las marchas en paralelo dentro de su rama.
+
+\begin{center}
+\begin{tikzpicture}
+\draw[borde,step=0.5] (0,0) grid (16,5.5);
+\draw[very thick,navy] (0.5,0)--(0.5,5.5) node[above,font=\small]{L};
+\draw[very thick,navy] (15.5,0)--(15.5,5.5) node[above,font=\small]{N};
+\end{tikzpicture}
+\end{center}
+\solucion{4.3}
+
+\begin{decision}
+\textbf{¿Deben actuar los PARO en modo AUT?} Una opción es dejar S1 y S3 solo en la rama MAN. Otra es sacarlos a la serie común, junto a F2. Para la segunda opción, apliquen la ecuación: si en AUT, con BT1 cerrado, el operador pulsa S1 y lo suelta, ¿qué pasa? ¿Cuál de las dos opciones elige el grupo y cómo se entera el operador de que en AUT el PARO no actúa?
+\lineas{4}
+\end{decision}
+\solucion{4.4}
+
+\paso{4.5} \textbf{Tabla de escenarios.} VF completa esta tabla con su ecuación, no con intuición.
+
+\begin{center}\small\renewcommand{\arraystretch}{1.5}
+\begin{tabularx}{\linewidth}{@{}c p{6.1cm} W p{1.4cm}@{}}
+\toprule
+\textbf{\#} & \textbf{Escenario} & \textbf{Qué hace el extractor} & \textbf{¿Seguro?}\\
+\midrule
+1 & MAN: la torre pulsa S4 y lo suelta & & \\
+2 & MAN, en marcha: apagón de 40 s y vuelve la energía & & \\
+3 & AUT, BT1 cerrado: apagón de 40 s y vuelve & & \\
+4 & AUT, en marcha: la torre pulsa S3 & & \\
+5 & MAN, en marcha: se corta el cable de S3 & & \\
+6 & MAN: el contacto KM1 13-14 se soldó; se pulsa S1 y se suelta & & \\
+7 & AUT: F2 dispara con rearme automático y el motor sigue con falla & & \\
+8 & En marcha en AUT se gira SA a MAN & & \\
+\bottomrule
+\end{tabularx}
+\end{center}
+\solucion{4.5}
+
+\begin{falla}
+\textbf{Auditoría de la propuesta de un contratista.} El contratista entregó esta ecuación:
+\[
+\cv{KM1} = \cv{SA_{MAN}}\cdot(\cv{S2}+\cv{S4})\cdot\no{S1}\cdot\no{S3}\cdot\no{S0}\cdot\no{F2} \;+\; \cv{KM1} \;+\; \cv{SA_{AUT}}\cdot\cv{BT1}\cdot\no{S0}\cdot\no{F2}
+\]
+Encuentren dos errores graves, digan qué síntoma produciría cada uno y escriban la corrección.
+\lineas{4}
+\end{falla}
+\solucion{4.6}
+
+\begin{evidencia}
+Ecuación, escalera, decisión sobre los PARO en AUT y tabla de ocho escenarios. Antes de pasar a la sesión 2, el docente revisa la escalera.
+\end{evidencia}
+
+% ===================================================================
+\section{Bomba de trasiego y temporizadores}
+
+\begin{curso}
+Secciones 6 y 7: captadores todo o nada, histéresis por retención, corriente de reposo, TON y TOF, entrada de control, reenganche escalonado (\pdfpag{122} y \pdfpag{141}).
+\end{curso}
+
+\begin{datos}[Bomba de trasiego KM4]
+BL1 nivel bajo: NA, cierra con nivel $\le$ bajo. BL2 nivel alto: NC, abre con nivel $\ge$ alto. S5 paro (NC) y F4 térmico (95-96). BL3 nivel muy bajo: disponible, aún sin conectar. El tanque diario da \SI{4}{h} de autonomía a la planta a plena carga.
+\end{datos}
+
+\paso{5.1} Escriban la ecuación de KM4 (la variable BL2 vale 1 cuando el nivel alto se alcanzó). ¿Qué hace la bomba cuando el nivel está entre bajo y alto, y por qué es deseable?
+\[
+\cv{KM4} = \rule{9cm}{0.4pt}
+\]
+\solucion{5.1}
+
+\paso{5.2} VF: ¿hacia dónde falla un cable cortado de BL1? ¿Y de BL2? ¿Y un flotador BL2 trabado abajo? Para cada falla insegura, propongan una medida.
+\lineas{4}
+\solucion{5.2}
+
+\begin{decision}
+\textbf{Alarma de nivel muy bajo con BL3.} Diseñen la alarma H5 para que se active con nivel muy bajo \textbf{y también} si se corta el cable de BL3 o falla el relé de la alarma. ¿Qué principio usan? ¿De qué fuente alimentan la alarma para que siga funcionando si se pierde el mando de \SI{120}{V}?
+\lineas{4}
+\end{decision}
+\solucion{5.3}
+
+\begin{datos}[Ficha del temporizador de posventilación KT5]
+TOF electrónico. Alimentación A1-A2 \SI{120}{V} CA \textbf{permanente}. Entrada de control B1: al cerrarse, la salida conmuta al instante; al abrirse, la salida vuelve después de $T$. Salida conmutada 15-16-18. Rango 0,5--\SI{10}{min}. El extractor debe seguir \SI{5}{min} después de que abra BT1.
+\end{datos}
+
+\paso{5.4} Describan cómo conectan KT5 (A1-A2, B1, 15-18) y reescriban la rama AUT. ¿Qué pasaría si alguien alimentara A1-A2 a través de BT1?
+\lineas{3}
+\solucion{5.4}
+
+\begin{falla}
+Si la salida de KT5 se daña y queda abierta, ¿qué le pasa al extractor en AUT un día de calor? Propongan una modificación de una sola conexión que evite que la falla del temporizador deje el cuarto sin ventilación.
+\lineas{2}
+\end{falla}
+\solucion{5.5}
+
+\paso{5.6} \textbf{Reenganche escalonado.} Cuando vuelve la tensión a la barra (desde la red o desde la planta), KA0 se energiza y alimenta los TON KT11 a KT14, uno por carga. Restricciones:
+\begin{itemize}
+  \item la planta admite un arranque de motor cada \SI{8}{s} como mínimo (\SI{3}{s} de arranque más \SI{5}{s} para recuperar tensión y frecuencia);
+  \item la sala de equipos debe recuperar ventilación o aire en menos de \SI{30}{s};
+  \item conviene esperar unos segundos antes del primer arranque para que la fuente se asiente.
+\end{itemize}
+
+\begin{center}\small\renewcommand{\arraystretch}{1.4}
+\begin{tabularx}{\linewidth}{@{}l p{3.2cm} p{1.6cm} W@{}}
+\toprule
+\textbf{Temporizador} & \textbf{Carga} & \textbf{Ajuste (s)} & \textbf{Por qué en ese orden}\\
+\midrule
+KT11 & & & \\
+KT12 & & & \\
+KT13 & & & \\
+KT14 & & & \\
+\bottomrule
+\end{tabularx}
+\end{center}
+\solucion{5.6}
+
+\begin{decision}
+\textbf{¿Se reconecta el deshumidificador cuando la carga está en la planta?} Es una resistencia de \SI{3}{kW} que no es esencial para las luces. Decidan y digan qué contacto usarían para impedirlo.
+\lineas{2}
+\end{decision}
+\solucion{5.7}
+
+\paso{5.8} Completen la justificación de los temporizadores del tablero de servicios:
+
+\begin{center}\small\renewcommand{\arraystretch}{1.5}
+\begin{tabularx}{\linewidth}{@{}l p{1.5cm} p{1.5cm} W W@{}}
+\toprule
+\textbf{Temporizador} & \textbf{Función} & \textbf{Ajuste} & \textbf{Razón} & \textbf{Si falla\ldots}\\
+\midrule
+KT5 posventilación & & & & \\
+KT11--KT14 & & & & \\
+\bottomrule
+\end{tabularx}
+\end{center}
+\solucion{5.8}
+
+% ===================================================================
+\section{Transferencia red--planta: ¿cabe en 15 segundos?}
+
+\begin{curso}
+Secciones 8 y 9: enclavamiento eléctrico y mecánico, tiempos de maniobra, esquema de transferencia del caso, presupuesto de tiempo y modos de falla (\pdfpag{158} y \pdfpag{178}).
+\end{curso}
+
+Trabajen con el esquema de transferencia del caso (mando \SI{24}{V} CC). Sus ecuaciones son:
+\[
+\begin{aligned}
+\cv{KT1} &= \overline{R} &\qquad \cv{KA3} &= (\cv{KT1}_t + \cv{KA3})\cdot\overline{\cv{KT3}_t} &\qquad \cv{KT3} &= R\cdot\cv{KA3}\\
+\cv{KT2} &= G\cdot\cv{KA3} & \cv{KM2} &= \cv{KT2}_t\cdot\no{KM1} & \cv{KM1} &= R\cdot\no{KA3}\cdot\no{KM2}
+\end{aligned}
+\]
+$R$: KA1 energizado (red apta). $G$: KA2 energizado (planta apta). La orden de arranque de la planta es KA3. Los ajustes $t_1$, $t_2$ y $t_3$ son los de KT1, KT2 y KT3.
+
+\begin{datos}[Datos para el presupuesto de tiempo (ilustrativos)]
+\begin{itemize}[leftmargin=*]
+  \item Requisito: luces de aproximación Cat~I, tiempo máximo de conmutación \SI{15}{s}, medido entre los puntos de \SI{50}{\percent} de intensidad.
+  \item Relé de supervisión KA1: retardo propio ajustable de 0,1 a \SI{30}{s}; $t_{\text{det}}$ es ese ajuste.
+  \item Planta: «planta apta» (KA2) \SI{8}{s} después de la orden en condiciones típicas; \SI{9,5}{s} en el peor caso (motor frío). Con el calentador de precalentamiento en servicio y supervisado, el peor caso baja a \SI{8,5}{s}.
+  \item El fabricante de la planta pide esperar \textbf{al menos} \SI{2}{s} después de «planta apta» antes de tomar la carga en bloque: $t_2 \ge \SI{2}{s}$.
+  \item Cierre de KM2: \SI{0,05}{s}. Lámparas: caen al \SI{50}{\percent} \SI{0,1}{s} después de perder la tensión y suben al \SI{50}{\percent} \SI{0,2}{s} después de recuperarla.
+\end{itemize}
+Con estos datos, como la luz se apaga cuando falla la red (no cuando abre KM1):
+\[
+t_{\text{conm}} = t_{\text{det}} + t_1 + t_{\text{planta}} + t_2 + t_{\text{maniobra}} + (0{,}2 - 0{,}1)~\text{s}
+\]
+\end{datos}
+
+\begin{predice}
+Antes de calcular: ¿cuál de los términos de la suma es el más grande? ¿Cuáles puede cambiar el tablero y cuáles no?
+\lineas{1}
+\end{predice}
+
+\paso{6.1} Con $t_{\text{det}} = \SI{0,1}{s}$, completen el tiempo de conmutación en el \textbf{peor caso} sin precalentamiento ($t_{\text{planta}} = \SI{9,5}{s}$). Marquen las celdas que cumplen con al menos \SI{1}{s} de margen.
+
+\begin{center}\small\renewcommand{\arraystretch}{1.5}
+\begin{tabular}{@{}l c c@{}}
+\toprule
+& $t_2 = \SI{2}{s}$ & $t_2 = \SI{3}{s}$\\
+\midrule
+$t_1 = \SI{1}{s}$\renglon & \hspace{3cm} & \hspace{3cm}\\
+$t_1 = \SI{2}{s}$\renglon & & \\
+$t_1 = \SI{3}{s}$\renglon & & \\
+\bottomrule
+\end{tabular}
+\end{center}
+\solucion{6.1}
+
+\begin{datos}[Registro de microcortes de la red en la estación (un año, ilustrativo)]
+\small
+\begin{tabular}{@{}l c c c c c c@{}}
+\toprule
+\textbf{Duración del corte} & $<$ 0,5 s & 0,5--1 s & 1--2 s & 2--3 s & 3--10 s & $\ge$ 10 s\\
+\textbf{Cantidad} & 40 & 12 & 6 & 3 & 1 & 3\\
+\bottomrule
+\end{tabular}
+\end{datos}
+
+\paso{6.2} \textbf{El precio de un filtro corto.} Llamamos \emph{arranque innecesario} al de un corte que se habría resuelto solo en menos de \SI{10}{s}. Para $t_1 = 1$, 2 y \SI{3}{s}, ¿cuántos arranques innecesarios habría por año?
+\lineas{2}
+\solucion{6.2}
+
+\paso{6.3} Lean las ecuaciones: llega un corte de \SI{2,5}{s}. ¿Cuánto tiempo quedan apagadas las luces con $t_1 = \SI{3}{s}$? ¿Y con $t_1 = \SI{2}{s}$ y $t_2 = \SI{2}{s}$ (planta típica)? Sigan KA3 y el NC de KA3 en la rama de KM1.
+\lineas{4}
+\solucion{6.3}
+
+\begin{decision}
+\textbf{Ajustes de la transferencia.} Elijan $t_{\text{det}}$, $t_1$ y $t_2$, y digan si piden supervisar el precalentamiento de la planta. Justifiquen con el peor caso, el margen, los arranques innecesarios y lo que encontraron en el paso 6.3. Escriban qué riesgo aceptan.
+\lineas{5}
+\end{decision}
+\solucion{6.4}
+
+\paso{6.5} \textbf{Dos barreras.} Los contactores de la transferencia abren en 35--\SI{60}{ms} y cierran en 15--\SI{45}{ms} (catálogo ilustrativo). Sin NC cruzado, ¿cuánto pueden solaparse en el peor caso? Un contratista propone quitar los NC cruzados porque «la barra mecánica ya lo impide». Refuten con dos argumentos.
+\lineas{4}
+\solucion{6.5}
+
+\paso{6.6} \textbf{La pista pasa a Categoría II.} El tiempo máximo de conmutación de los elementos críticos pasa a \SI{1}{s}. ¿Sirve esta arquitectura con algún ajuste de temporizadores? ¿Qué alternativas tiene la estación y cuál es el precio de cada una?
+\lineas{4}
+\solucion{6.6}
+
+\begin{falla}
+Se funde F0, el fusible del mando de \SI{24}{V} CC, con la red perfectamente sana. ¿Qué pasa con las luces? ¿Por qué esta es la falla más peligrosa del esquema? Propongan dos medidas.
+\lineas{3}
+\end{falla}
+\solucion{6.7}
+
+% ===================================================================
+\section{Diagnóstico y línea de mando a la torre}
+
+\begin{curso}
+Sección 10: observar antes de medir, perseguir la tensión, dividir por mitades, líneas de mando largas y corriente capacitiva (\pdfpag{204}).
+\end{curso}
+
+\begin{figure}[H]
+\centering
+\planoExtractor[1]
+\caption{Plano del extractor con puntos de prueba. Lecturas respecto a N. P0 entrada de F3 · P1 salida de F3 · P2 después de F2 · P3 después de S0 · P4 después de S1 · P5 borne A1 de KM1.}
+\label{fig:puntos}
+\end{figure}
+
+\paso{7.1} Para cada caso, \textbf{predigan primero} dónde está la falla y después digan qué medición o inspección la confirma. Las mediciones con tensión solo las hace personal calificado, con procedimiento, EPP y multímetro de categoría adecuada.
+
+\begin{center}\small\renewcommand{\arraystretch}{1.5}
+\begin{tabularx}{\linewidth}{@{}c p{6.4cm} W@{}}
+\toprule
+& \textbf{Observaciones} & \textbf{Diagnóstico y siguiente paso}\\
+\midrule
+a) & S2 pulsado: P0 = P1 = \SI{120}{V}, P2 = \SI{0}{V}. H2 está apagado. & \\
+b) & Nada responde. P0 = \SI{120}{V}, P1 = \SI{0}{V}. Un compañero propone poner un fusible más grande. & \\
+c) & KM1 cierra, H1 enciende, pero el motor no gira. & \\
+d) & Instalación antigua con mando directo desde la torre: el extractor arranca desde la torre, pero a veces el PARO de la torre no lo detiene. El PARO local siempre funciona. & \\
+\bottomrule
+\end{tabularx}
+\end{center}
+\solucion{7.1}
+
+\begin{datos}[Datos de la línea a la torre]
+Torre a \SI{1,2}{km} del cuarto: la corriente de mando recorre \SI{1200}{m} de ida y \SI{1200}{m} de vuelta ($l_{\text{tot}} = \SI{2400}{m}$). Cobre de \SI{1,5}{\square\milli\metre}, $\kappa = \SI{57}{\metre\per\ohm\per\square\milli\metre}$. Capacitancia entre conductores: \SI{0,2}{\micro\farad\per\kilo\metre}. La instalación antigua tenía un CT-09 (\SI{32}{VA} / \SI{4,5}{VA}).
+\[
+\Delta u\,\text{\%} = \frac{100\cdot S\cdot l_{\text{tot}}}{\kappa\cdot A\cdot U^2}
+\qquad
+I_C = U\cdot 2\pi f\cdot C
+\qquad
+I_{\text{mant}} = \frac{S_{\text{mant}}}{U}
+\]
+\end{datos}
+
+\paso{7.2} Expliquen con números el síntoma d): calculen $C$, $I_C$ y comparen con la corriente de mantenimiento del CT-09 a \SI{120}{V}.
+\lineas{3}
+\solucion{7.2}
+
+\paso{7.3} Ahora el extractor tiene el contactor que eligieron en la etapa~2. Evalúen tres opciones para el mando remoto:
+
+\begin{center}\small\renewcommand{\arraystretch}{1.5}
+\begin{tabularx}{\linewidth}{@{}l p{5.4cm} p{1.6cm} W@{}}
+\toprule
+& \textbf{Opción} & \textbf{$\Delta u\,\text{\%}$} & \textbf{¿Cierra? ¿Cae? Riesgo}\\
+\midrule
+A & \SI{120}{V} CA directo a la bobina de KM1 (llamada \SI{70}{VA}) & & \\
+B & Todo el mando a \SI{24}{V} CC con bobina CC de \SI{12}{W} & & \\
+C & Relés de interfaz KA6/KA7 con bobina de \SI{24}{V} CC y \SI{0,5}{W} en el lazo de la torre & & \\
+\bottomrule
+\end{tabularx}
+\end{center}
+Para la opción A calculen también $I_C/I_{\text{mant}}$, y la resistencia $R_p = 10^3/C$ ($C$ en \si{\micro\farad}) que habría que poner en paralelo con la bobina, con su potencia $U^2/R_p$.
+\solucion{7.3}
+
+\begin{decision}
+\textbf{Arquitectura del mando remoto.} Elijan la opción. Si eligen relés de interfaz, el PARO remoto debe conservar la \textbf{seguridad positiva}: un cable cortado entre la torre y el cuarto debe detener el extractor. Digan cómo conectan S3 y la bobina de KA7, qué contacto de KA7 entra en la escalera de la etapa~4 y reescriban la ecuación de KM1 con KA6 y KA7.
+\lineas{5}
+\end{decision}
+\solucion{7.4}
+
+\paso{7.5} \textbf{Cuánto vale diagnosticar bien.} Con un MTBF de \SI{4380}{h}, calculen la disponibilidad $A_0 = \text{MTBF}/(\text{MTBF}+\text{MDT})$ y las horas fuera de servicio por año para un MDT de \SI{5}{h} y para uno de \SI{1,5}{h}. ¿Qué parte de la diferencia depende del técnico?
+\lineas{2}
+\solucion{7.5}
+
+% ===================================================================
+\section{Cierre: registro y defensa}
+
+\paso{8.1} RT revisa que el registro de decisiones (Anexo A) tenga \textbf{al menos diez decisiones}, cada una con opciones, elección, razón y riesgo aceptado. Como mínimo: contactor, térmico y rearme, T1, frente del tablero, PARO en AUT, alarma de nivel, escalonamiento, ajustes de la transferencia, Cat~II y mando remoto.
+
+\paso{8.2} \textbf{Defensa oral de 5 minutos.} El docente elige a un integrante para cada pregunta, por ejemplo:
+\begin{itemize}
+  \item «¿Por qué no sirve el CT-09 si dice 25 A?»
+  \item «Si se corta el cable del PARO de la torre, ¿qué pasa y por qué eso es lo que querían?»
+  \item «¿Por qué no bajaron $t_1$ a \SI{1}{s} si así sobraba margen?»
+  \item «¿Qué falla de su diseño les preocupa más y qué hicieron con ella?»
+\end{itemize}
+
+\paso{8.3} Cada integrante escribe una línea: la decisión del taller que más le costó y por qué.
+\lineas{4}
+
+\needspace{18\baselineskip}
+\section*{Entrega y evaluación}
+
+Se entrega este cuadernillo diligenciado, el registro de decisiones y una \textbf{memoria de decisiones de una página} que responda la pregunta del módulo para el cuarto del caso: ¿qué decide arrancar la planta, esperar a que se estabilice y conectar la carga sin que red y planta se toquen, y cómo verifican que lo hace a tiempo? Escriban los nombres de los cuatro integrantes.
+
+\begin{center}\small\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\linewidth}{@{}L r L@{}}
+\toprule
+\textbf{Criterio} & \textbf{Peso} & \textbf{Se cumple cuando\ldots}\\
+\midrule
+Aplicación de conceptos & 25 \% & Las ecuaciones, escaleras y tablas de estado son correctas y usan bien reposo, bornes, categorías, TON/TOF y enclavamientos\\
+Decisiones justificadas & 30 \% & Cada decisión del registro tiene opciones, razón con dato o norma y riesgo aceptado\\
+Análisis de fallas & 20 \% & Cada propuesta se probó con cable cortado, contacto soldado y tensión que vuelve, y las fallas inseguras tienen medida\\
+Cálculos & 15 \% & Fórmula, valores, unidades y comparación con un criterio (margen, ventana, catálogo)\\
+Defensa oral & 10 \% & Cualquier integrante explica cualquier decisión del grupo\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+% ===================================================================
+\newpage
+\appendix
+\renewcommand{\thesection}{\Alph{section}}
+\section{Registro de decisiones de ingeniería}
+
+Una fila por decisión. «Riesgo aceptado» es lo que podría salir mal con la opción elegida y por qué el grupo lo considera aceptable.
+
+\begin{center}\small\renewcommand{\arraystretch}{1.15}
+\begin{tabularx}{\linewidth}{@{}c p{2.6cm} L L L L@{}}
+\toprule
+\textbf{\#} & \textbf{Decisión} & \textbf{Opciones consideradas} & \textbf{Elegida} & \textbf{Razón (dato, norma o falla)} & \textbf{Riesgo aceptado}\\
+\midrule
+1 & Contactor del extractor & & & & \\[1.3cm]
+2 & Térmico y rearme & & & & \\[1.3cm]
+3 & Transformador T1 & & & & \\[1.3cm]
+4 & Frente del tablero & & & & \\[1.3cm]
+5 & PARO en modo AUT & & & & \\[1.3cm]
+6 & Alarma de nivel & & & & \\[1.3cm]
+7 & Escalonamiento & & & & \\[1.3cm]
+8 & Ajustes de la transferencia & & & & \\[1.3cm]
+9 & Categoría II & & & & \\[1.3cm]
+10 & Mando remoto & & & & \\[1.3cm]
+11 & & & & & \\[1.3cm]
+12 & & & & & \\[1.3cm]
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\section{Fórmulas y reglas del módulo}
+
+\begin{center}\small\renewcommand{\arraystretch}{1.45}
+\begin{tabularx}{\linewidth}{@{}l L@{}}
+\toprule
+\textbf{Tema} & \textbf{Fórmula o regla}\\
+\midrule
+Lógica de contactos & Serie = Y ($A\cdot B$); paralelo = O ($A+B$); contacto NC = NO ($\overline{A}$). Variable = 1 cuando el dispositivo está accionado o energizado.\\
+Retención con paro dominante & $\cv{KM} = (\text{marcha} + \cv{KM})\cdot\overline{\text{paro}}\cdot\overline{\text{protección}}$\\
+Bornes & Unidad 1-2 NC, 3-4 NA, 5-6 NC especial, 7-8 NA especial; 95-96 / 97-98 del relé de sobrecarga; A1-A2 bobina.\\
+Corriente de bobina & $I = S/U$; la fuente de mando se dimensiona por la llamada simultánea.\\
+Ventana de la bobina (CA) & Cierre garantizado entre $0{,}85\,U_c$ y $1{,}1\,U_c$; caída entre $0{,}20\,U_c$ y $0{,}75\,U_c$.\\
+Solape sin NC cruzado & $t_{\text{solape,máx}} = t_{\text{apertura,máx}} - t_{\text{cierre,mín}}$\\
+Caída de tensión & $\Delta u\,\text{\%} = 100\,S\,l_{\text{tot}} / (\kappa\,A\,U^2)$\\
+Corriente capacitiva & $I_C = U\cdot 2\pi f\cdot C$, \quad $R_p = 10^3/C$ con $C$ en \si{\micro\farad}\\
+Disponibilidad & $A_0 = \text{MTBF}/(\text{MTBF}+\text{MDT})$; horas fuera por año $= (1-A_0)\times 8760$\\
+\bottomrule
+\end{tabularx}
+\end{center}
+
+\end{document}

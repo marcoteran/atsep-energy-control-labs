@@ -1,0 +1,12 @@
+# Soluciones del taller: solo para el docente, no se publican
+taller/soluciones_taller.tex
+taller/*_docente.pdf
+
+# Archivos auxiliares de LaTeX
+*.aux
+*.log
+*.out
+*.toc
+*.synctex.gz
+*.fls
+*.fdb_latexmk
