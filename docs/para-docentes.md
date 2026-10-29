@@ -1,6 +1,6 @@
 # Guía del instructor · 3 horas
 
-[← Inicio](../README.md) · [Guía PDF](../guia/guia_laboratorio_ESP32_ATSEP.pdf) · [Mapa de clases](mapa-de-clases.md)
+[← Inicio](../README.md) · [Guía PDF](../guia/guia_laboratorio_ATSEP.pdf) · [Mapa de clases](mapa-de-clases.md)
 
 **Propósito:** conectar el control cableado que se observa en la presentación, las condiciones lógicas del simulador y un circuito didáctico físico.
 

@@ -12,7 +12,7 @@
 ![Arduino](https://img.shields.io/badge/firmware-Arduino-2563eb?style=flat-square&logo=arduino)
 ![Duración](https://img.shields.io/badge/pr%C3%A1ctica-3%20horas-475569?style=flat-square)
 
-[**📘 Guía PDF**](guia/guia_laboratorio_ESP32_ATSEP.pdf) · [**⬇️ Descargar .ino**](firmware/banco_simple_esp32.ino) · [**🎓 Diapositivas PDF**](presentaciones/marcoteran_energy_electriccontroland_wiredlogyc.pdf) · [**🧪 Simulador**](https://atsep-controllogyc.vercel.app/) · [**🌐 Portal de la clase**](docs/index.html)
+[**📘 Guía PDF**](guia/guia_laboratorio_ATSEP.pdf) · [**⬇️ Descargar .ino**](firmware/banco_simple_esp32.ino) · [**🎓 Diapositivas PDF**](presentaciones/marcoteran_energy_electriccontroland_wiredlogyc.pdf) · [**🧪 Simulador**](https://atsep-controllogyc.vercel.app/) · [**🌐 Portal de la clase**](docs/index.html)
 
 </div>
 
@@ -30,7 +30,7 @@ Este repositorio reúne **las tres piezas de una misma experiencia**: la present
 |:--|:--|:--|
 | **01 · Presentación teórica** | 235 páginas: mando y potencia, contactores, lógica cableada, temporizadores, enclavamientos y transferencia. | [Ver / descargar PDF](presentaciones/marcoteran_energy_electriccontroland_wiredlogyc.pdf) |
 | **02 · Simulador interactivo** | Once módulos para experimentar con circuitos y comprobar hipótesis. Es un **repositorio independiente**. | [Abrir simulador](https://atsep-controllogyc.vercel.app/) |
-| **03 · Laboratorio físico** | Guía paso a paso de 3 horas, circuitos, cálculos, tablas y evidencias. | [Descargar guía PDF](guia/guia_laboratorio_ESP32_ATSEP.pdf) |
+| **03 · Laboratorio físico** | Guía paso a paso de 3 horas, circuitos, cálculos, tablas y evidencias. | [Descargar guía PDF](guia/guia_laboratorio_ATSEP.pdf) |
 | **04 · Programa para ESP32** | Código Arduino `.ino` que implementa los modos 1–4 y las pruebas `b` y `k`. | [Descargar archivo `.ino`](firmware/banco_simple_esp32.ino) |
 
 **Sin Internet en el aula:** el PDF de laboratorio incorpora el `.ino` como archivo adjunto (icono de clip y panel de adjuntos), que se puede extraer en un lector PDF compatible. También ofrece un hipervínculo de descarga desde GitHub; en repositorios privados se requieren permisos.
@@ -62,7 +62,7 @@ Luego abra `http://localhost:3000` y seleccione los módulos **Mandos**, **Lógi
 
 ## Descargas directas
 
-- 📗 **[Guía del laboratorio (PDF)](guia/guia_laboratorio_ESP32_ATSEP.pdf)** — incluye código completo y anexo de conexiones.
+- 📗 **[Guía del laboratorio (PDF)](guia/guia_laboratorio_ATSEP.pdf)** — incluye código completo y anexo de conexiones.
 - 🔧 **[Programa para Arduino IDE (.ino)](firmware/banco_simple_esp32.ino)** — se carga en el ESP32.
 - 📊 **[Presentación de la clase (PDF, 235 páginas)](presentaciones/marcoteran_energy_electriccontroland_wiredlogyc.pdf)** — documento aportado por el docente.
 
@@ -87,9 +87,9 @@ atsep-energy-control-labs/
 ├── README.md                         ← Página de entrada para estudiantes
 ├── assets/banner.svg                 ← Identidad visual
 ├── presentaciones/
-│   └── controles_electricos_y_logica_cableada.pdf
+│   └── marcoteran_energy_electriccontroland_wiredlogyc.pdf
 ├── guia/
-│   ├── guia_laboratorio_ESP32_ATSEP.pdf
+│   ├── guia_laboratorio_ATSEP.pdf
 │   └── guia_laboratorio_ESP32_ATSEP.tex
 ├── firmware/
 │   ├── banco_simple_esp32.ino

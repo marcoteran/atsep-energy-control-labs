@@ -1,6 +1,6 @@
 # Mapa de clases · Teoría → Simulador → Laboratorio
 
-[← Inicio](../README.md) · [Presentación completa](../presentaciones/controles_electricos_y_logica_cableada.pdf)
+[← Inicio](../README.md) · [Presentación completa](../presentaciones/marcoteran_energy_electriccontroland_wiredlogyc.pdf)
 
 Esta tabla permite enlazar directamente la **presentación teórica** con cada módulo del [simulador](https://github.com/marcoteran/atsep-controllogyc) y la práctica física correspondiente.
 

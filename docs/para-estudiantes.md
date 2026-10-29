@@ -1,10 +1,10 @@
 # Ruta para estudiantes
 
-[← Inicio](../README.md) · [Guía del laboratorio](../guia/guia_laboratorio_ESP32_ATSEP.pdf) · [Programa ESP32](../firmware/banco_simple_esp32.ino)
+[← Inicio](../README.md) · [Guía del laboratorio](../guia/guia_laboratorio_ATSEP.pdf) · [Programa ESP32](../firmware/banco_simple_esp32.ino)
 
 ## Antes de la sesión
 
-Consulta los conceptos de control, mando y potencia, pulsadores, retención y enclavamiento en las [diapositivas](../presentaciones/controles_electricos_y_logica_cableada.pdf) y explora los [11 módulos del simulador](https://github.com/marcoteran/atsep-controllogyc).
+Consulta los conceptos de control, mando y potencia, pulsadores, retención y enclavamiento en las [diapositivas](../presentaciones/marcoteran_energy_electriccontroland_wiredlogyc.pdf) y explora los [11 módulos del simulador](https://github.com/marcoteran/atsep-controllogyc).
 
 ## Durante la sesión
 

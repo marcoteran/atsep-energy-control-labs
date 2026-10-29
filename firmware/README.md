@@ -1,6 +1,6 @@
 # Firmware ESP32 · Banco ATSEP
 
-[← Inicio](../README.md) · [Descargar programa](banco_simple_esp32.ino) · [Guía PDF](../guia/guia_laboratorio_ESP32_ATSEP.pdf)
+[← Inicio](../README.md) · [Descargar programa](banco_simple_esp32.ino) · [Guía PDF](../guia/guia_laboratorio_ATSEP.pdf)
 
 1. Instala **Arduino IDE** y el soporte de placas **ESP32** de Espressif.
 2. Descarga [`banco_simple_esp32.ino`](banco_simple_esp32.ino), ábrelo en Arduino IDE y selecciona el modelo **ESP32 DevKitC** correcto y su puerto.

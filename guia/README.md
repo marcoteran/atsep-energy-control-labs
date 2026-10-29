@@ -1,10 +1,10 @@
 # Banco físico con ESP32
 
-[← Inicio](../README.md) · [Firmware](../firmware/banco_simple_esp32.ino) · [Presentación](../presentaciones/controles_electricos_y_logica_cableada.pdf)
+[← Inicio](../README.md) · [Firmware](../firmware/banco_simple_esp32.ino) · [Presentación](../presentaciones/marcoteran_energy_electriccontroland_wiredlogyc.pdf)
 
 Esta guía introduce progresivamente **LED y resistencia**, **pulsadores e interruptores**, **marcha–paro con retención** y **transferencia red–planta**. Todo sucede a **3,3 V** y las salidas son LEDs de demostración, no contactores reales.
 
-- **PDF:** [guia_laboratorio_ESP32_ATSEP.pdf](guia_laboratorio_ESP32_ATSEP.pdf)
+- **PDF:** [guia_laboratorio_ATSEP.pdf](guia_laboratorio_ATSEP.pdf)
 - **Fuente editable:** [guia_laboratorio_ESP32_ATSEP.tex](guia_laboratorio_ESP32_ATSEP.tex)
 - **Código Arduino:** [banco_simple_esp32.ino](../firmware/banco_simple_esp32.ino)
 
