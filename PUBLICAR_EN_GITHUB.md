@@ -18,11 +18,11 @@ El script crea el repo inicialmente **privado**, sin modificar el repo del simul
 Cree un nuevo repositorio vacío llamado `atsep-energy-control-labs` dentro del usuario `marcoteran`, sin añadir README automático. Luego desde la raíz del ZIP descomprimido:
 
 ```bash
-git init -b main
+git init -b master
 git add .
 git commit -m "feat: curso ATSEP con teoria, simulador y laboratorio ESP32"
 git remote add origin https://github.com/marcoteran/atsep-energy-control-labs.git
-git push -u origin main
+git push -u origin master
 ```
 
-GitHub Pages (opcional): en Settings → Pages, publicar la rama `main` y la carpeta `/docs`. El portal será `https://marcoteran.github.io/atsep-energy-control-labs/` si la configuración y la visibilidad permiten GitHub Pages.
+GitHub Pages (opcional): en Settings → Pages, publicar la rama `master` y la carpeta `/docs`. El portal será `https://marcoteran.github.io/atsep-energy-control-labs/` si la configuración y la visibilidad permiten GitHub Pages.
